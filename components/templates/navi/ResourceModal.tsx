@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Resource } from '../../../types';
 
 interface ResourceModalProps {
@@ -8,6 +8,43 @@ interface ResourceModalProps {
 }
 
 export const ResourceModal: React.FC<ResourceModalProps> = ({ isOpen, onClose, resource }) => {
+  // Manage body scroll lock when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      // Prevent body scroll when modal is open
+      const originalOverflow = document.body.style.overflow;
+      const originalPaddingRight = document.body.style.paddingRight;
+
+      // Get scrollbar width to prevent layout shift
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+      document.body.style.overflow = 'hidden';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+
+      // Cleanup function to restore original styles
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.paddingRight = originalPaddingRight;
+      };
+    }
+  }, [isOpen]);
+
+  // Handle escape key press
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !resource) return null;
 
   // Construct full URL for external link
@@ -25,6 +62,7 @@ export const ResourceModal: React.FC<ResourceModalProps> = ({ isOpen, onClose, r
 
   return (
     <div
+      key={`resource-modal-${resource.id || resource.title}`}
       className="fixed z-50 overflow-y-scroll w-full h-full top-0 bottom-0 left-0 right-0 bg-[#244A51A1]"
       onClick={onClose}
     >
