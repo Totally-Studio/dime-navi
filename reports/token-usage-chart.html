@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Usage Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #4dc8bf;
+        }
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .stat-value {
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-bottom: 30px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .warning-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+        .warning-text {
+            color: #856404;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Token Usage Analysis</h1>
+        <p class="subtitle">Source: tokens 2_datasets_iDKBaZfkGv3XxN8P872OuQ8_2026-02-02T23_27_25.339Z.jsonl</p>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Records</div>
+                <div class="stat-value">100</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Input Tokens</div>
+                <div class="stat-value">17,586</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Output Tokens</div>
+                <div class="stat-value">3,228</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Max Total Tokens</div>
+                <div class="stat-value">87,597</div>
+            </div>
+        </div>
+
+        
+        <div class="warning">
+            <div class="warning-title">⚠️ High Token Usage Detected</div>
+            <div class="warning-text">
+                5 requests used >50K input tokens
+                (5.0% of total)
+            </div>
+        </div>
+        
+
+        <div class="chart-container">
+            <canvas id="tokenChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="distributionChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const data = [{"x":1,"timestamp":"2026-02-03T00:22:32.707Z","input":52519,"output":3164,"total":57589,"query":"How do I define and document context of use for my"},{"x":2,"timestamp":"2026-02-03T00:22:32.707Z","input":35781,"output":2541,"total":39847,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":3,"timestamp":"2026-02-03T00:22:32.707Z","input":36060,"output":2667,"total":40135,"query":"How can I demonstrate ROI to decision makers when "},{"x":4,"timestamp":"2026-02-03T00:22:32.707Z","input":35781,"output":3034,"total":40605,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":5,"timestamp":"2026-02-03T00:22:32.707Z","input":0,"output":0,"total":0,"query":"N/A"},{"x":6,"timestamp":"2026-02-03T00:22:32.707Z","input":36656,"output":2977,"total":40900,"query":"test"},{"x":7,"timestamp":"2026-02-03T00:22:32.707Z","input":40990,"output":3276,"total":49113,"query":"What are the V3+ framework domains and how should "},{"x":8,"timestamp":"2026-02-03T00:22:32.707Z","input":35781,"output":2585,"total":40459,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":9,"timestamp":"2026-02-03T00:22:32.707Z","input":40924,"output":77,"total":41092,"query":"donal trump"},{"x":10,"timestamp":"2026-02-03T00:22:32.707Z","input":36656,"output":3247,"total":41640,"query":"test"},{"x":11,"timestamp":"2026-02-03T00:22:32.707Z","input":83371,"output":3114,"total":87597,"query":"how do i determine which regulatory pathway is rig"},{"x":12,"timestamp":"2026-02-03T00:22:32.707Z","input":40676,"output":3970,"total":46363,"query":"hello"},{"x":13,"timestamp":"2026-02-03T00:22:32.707Z","input":36506,"output":3774,"total":41831,"query":"test promt"},{"x":14,"timestamp":"2026-02-03T00:22:32.707Z","input":74863,"output":2652,"total":79736,"query":"What regulatory precedents exist for FDA approval "},{"x":15,"timestamp":"2026-02-03T00:22:32.707Z","input":36657,"output":3074,"total":42333,"query":"Test prompt"},{"x":16,"timestamp":"2026-02-03T00:22:32.707Z","input":35781,"output":2844,"total":39887,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":17,"timestamp":"2026-02-03T00:22:32.707Z","input":52519,"output":2410,"total":56833,"query":"How do I define and document context of use for my"},{"x":18,"timestamp":"2026-02-03T00:22:32.707Z","input":35781,"output":2378,"total":39088,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":19,"timestamp":"2026-02-03T00:22:32.707Z","input":56563,"output":2179,"total":60464,"query":"NaVi is your personal navigator, indexing only vet"},{"x":20,"timestamp":"2026-02-03T00:22:32.707Z","input":31990,"output":2737,"total":35539,"query":"I have developed an EEG-based wearable for monitor"},{"x":21,"timestamp":"2026-02-03T00:22:32.707Z","input":33680,"output":2122,"total":37626,"query":"What is the recomended sDHT for Oncology digital v"},{"x":22,"timestamp":"2026-02-03T00:22:32.707Z","input":47931,"output":2075,"total":54188,"query":"how many sDHTs are FDA validated for clinical use?"},{"x":23,"timestamp":"2026-02-03T00:22:32.707Z","input":40990,"output":3354,"total":47082,"query":"What are the V3+ framework domains and how should "},{"x":24,"timestamp":"2026-02-03T00:22:32.707Z","input":40990,"output":3277,"total":45347,"query":"What are the V3+ framework domains and how should "},{"x":25,"timestamp":"2026-02-03T00:22:32.707Z","input":8499,"output":1713,"total":11037,"query":"How can I demonstrate ROI to decision makers when "},{"x":26,"timestamp":"2026-02-03T00:22:32.707Z","input":7959,"output":1947,"total":11964,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":27,"timestamp":"2026-02-03T00:22:32.707Z","input":30440,"output":2297,"total":35327,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":28,"timestamp":"2026-02-03T00:22:32.707Z","input":30440,"output":2587,"total":34428,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":29,"timestamp":"2026-02-03T00:22:32.707Z","input":8499,"output":2336,"total":13333,"query":"How can I demonstrate ROI to decision makers when "},{"x":30,"timestamp":"2026-02-03T00:22:32.707Z","input":7959,"output":2290,"total":11601,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":31,"timestamp":"2026-02-03T00:22:32.707Z","input":7745,"output":3613,"total":14436,"query":"digital trial"},{"x":32,"timestamp":"2026-02-03T00:22:32.707Z","input":7959,"output":3073,"total":13817,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":33,"timestamp":"2026-02-03T00:22:32.707Z","input":19049,"output":2812,"total":23769,"query":"fda"},{"x":34,"timestamp":"2026-02-03T00:22:32.707Z","input":7845,"output":3497,"total":12719,"query":"How do companies make technology decisions?"},{"x":35,"timestamp":"2026-02-03T00:22:32.707Z","input":9624,"output":2832,"total":13812,"query":"how many guidelines have fda published in last 12 "},{"x":36,"timestamp":"2026-02-03T00:22:32.707Z","input":9498,"output":3440,"total":15395,"query":"how many guidelines have fda published in last 12 "},{"x":37,"timestamp":"2026-02-03T00:22:32.707Z","input":18272,"output":3120,"total":22566,"query":"how many words in this response"},{"x":38,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2028,"total":11469,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":39,"timestamp":"2026-02-03T00:22:32.707Z","input":8910,"output":2450,"total":12454,"query":"Summarize FDA guidance from CDER, CBER, and CDRH o"},{"x":40,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":2134,"total":11548,"query":"How can I demonstrate ROI to decision makers when "},{"x":41,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2704,"total":12594,"query":"How do I define and document context of use for my"},{"x":42,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2146,"total":11352,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":43,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":1742,"total":11203,"query":"How can I demonstrate ROI to decision makers when "},{"x":44,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2744,"total":11730,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":45,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":1865,"total":10731,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":46,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":3019,"total":13146,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":47,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":3359,"total":13316,"query":"How do I define and document context of use for my"},{"x":48,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2800,"total":11775,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":49,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":2051,"total":12661,"query":"How can I demonstrate ROI to decision makers when "},{"x":50,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":3023,"total":13061,"query":"How do I define and document context of use for my"},{"x":51,"timestamp":"2026-02-03T00:22:32.707Z","input":8499,"output":2427,"total":11808,"query":"What are the V3+ framework domains and how should "},{"x":52,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2617,"total":11482,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":53,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":1911,"total":10743,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":54,"timestamp":"2026-02-03T00:22:32.707Z","input":8620,"output":1358,"total":11694,"query":"which FDA guidance(s) talk about risk based monito"},{"x":55,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":3001,"total":11889,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":56,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":3657,"total":12315,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":57,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2081,"total":13895,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":58,"timestamp":"2026-02-03T00:22:32.707Z","input":18315,"output":2414,"total":23151,"query":"explain this to me in two paragraphs"},{"x":59,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2181,"total":14254,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":60,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2352,"total":12353,"query":"How do I define and document context of use for my"},{"x":61,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2063,"total":11132,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":62,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":2429,"total":12489,"query":"How can I demonstrate ROI to decision makers when "},{"x":63,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2827,"total":11864,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":64,"timestamp":"2026-02-03T00:22:32.707Z","input":8622,"output":2747,"total":12646,"query":"What are the V3+ framework domains and how should "},{"x":65,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":2134,"total":13237,"query":"How can I demonstrate ROI to decision makers when "},{"x":66,"timestamp":"2026-02-03T00:22:32.707Z","input":8622,"output":2754,"total":12310,"query":"What are the V3+ framework domains and how should "},{"x":67,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":2132,"total":14275,"query":"How can I demonstrate ROI to decision makers when "},{"x":68,"timestamp":"2026-02-03T00:22:32.707Z","input":8910,"output":3023,"total":13195,"query":"Summarize FDA guidance from CDER, CBER, and CDRH o"},{"x":69,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2720,"total":11892,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":70,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2153,"total":13594,"query":"How do I define and document context of use for my"},{"x":71,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":1922,"total":11728,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":72,"timestamp":"2026-02-03T00:22:32.707Z","input":8499,"output":2379,"total":12356,"query":"What are the V3+ framework domains and how should "},{"x":73,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":3008,"total":12673,"query":"How do I define and document context of use for my"},{"x":74,"timestamp":"2026-02-03T00:22:32.707Z","input":18947,"output":3107,"total":25051,"query":"fda"},{"x":75,"timestamp":"2026-02-03T00:22:32.707Z","input":19347,"output":64349,"total":84922,"query":"fda testing"},{"x":76,"timestamp":"2026-02-03T00:22:32.707Z","input":9010,"output":12498,"total":23096,"query":"fda technology"},{"x":77,"timestamp":"2026-02-03T00:22:32.707Z","input":9010,"output":2596,"total":13312,"query":"fda technology"},{"x":78,"timestamp":"2026-02-03T00:22:32.707Z","input":18293,"output":1956,"total":27709,"query":"dsudusgb"},{"x":79,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2983,"total":11843,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":80,"timestamp":"2026-02-03T00:22:32.707Z","input":18484,"output":3327,"total":24017,"query":"test"},{"x":81,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2830,"total":12336,"query":"How do I define and document context of use for my"},{"x":82,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":1873,"total":11214,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":83,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2650,"total":13063,"query":"How do I define and document context of use for my"},{"x":84,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2094,"total":12058,"query":"How do I define and document context of use for my"},{"x":85,"timestamp":"2026-02-03T00:22:32.707Z","input":18484,"output":3632,"total":24129,"query":"test"},{"x":86,"timestamp":"2026-02-03T00:22:32.707Z","input":18181,"output":2470,"total":31520,"query":"hello"},{"x":87,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":2443,"total":14157,"query":"How can I demonstrate ROI to decision makers when "},{"x":88,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":1987,"total":11936,"query":"How can I demonstrate ROI to decision makers when "},{"x":89,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2579,"total":13737,"query":"How do I define and document context of use for my"},{"x":90,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2296,"total":11903,"query":"How do I define and document context of use for my"},{"x":91,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":2644,"total":12388,"query":"How do I define and document context of use for my"},{"x":92,"timestamp":"2026-02-03T00:22:32.707Z","input":8397,"output":2061,"total":13793,"query":"How can I demonstrate ROI to decision makers when "},{"x":93,"timestamp":"2026-02-03T00:22:32.707Z","input":8124,"output":1996,"total":13162,"query":"How do I define and document context of use for my"},{"x":94,"timestamp":"2026-02-03T00:22:32.707Z","input":7857,"output":2545,"total":16550,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":95,"timestamp":"2026-02-03T00:22:32.707Z","input":7869,"output":2153,"total":11898,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":96,"timestamp":"2026-02-03T00:22:32.707Z","input":8511,"output":2072,"total":11933,"query":"What are the V3+ framework domains and how should "},{"x":97,"timestamp":"2026-02-03T00:22:32.707Z","input":8136,"output":1447,"total":10861,"query":"How do I define and document context of use for my"},{"x":98,"timestamp":"2026-02-03T00:22:32.707Z","input":7209,"output":1313,"total":9904,"query":"How can I demonstrate ROI to decision makers when "},{"x":99,"timestamp":"2026-02-03T00:22:32.707Z","input":6967,"output":1763,"total":10132,"query":"What evidence do pharmaceutical sponsors need to s"},{"x":100,"timestamp":"2026-02-03T00:22:32.707Z","input":7416,"output":1708,"total":9953,"query":"How do I define and document context of use for my"}];
+
+        // Timeline Chart
+        const ctx = document.getElementById('tokenChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.x),
+                datasets: [
+                    {
+                        label: 'Total Tokens',
+                        data: data.map(d => d.total),
+                        borderColor: '#4dc8bf',
+                        backgroundColor: 'rgba(77, 200, 191, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        fill: true
+                    },
+                    {
+                        label: 'Input Tokens',
+                        data: data.map(d => d.input),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        fill: false
+                    },
+                    {
+                        label: 'Output Tokens',
+                        data: data.map(d => d.output),
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Token Usage Over Time',
+                        font: { size: 18 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: (context) => {
+                                const d = data[context[0].dataIndex];
+                                return new Date(d.timestamp).toLocaleString();
+                            },
+                            afterBody: (context) => {
+                                const d = data[context[0].dataIndex];
+                                return ['Query: ' + d.query];
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Request Number'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Tokens'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Distribution Chart
+        const distCtx = document.getElementById('distributionChart').getContext('2d');
+
+        // Group into buckets
+        const buckets = {
+            '0-10K': 0,
+            '10-20K': 0,
+            '20-30K': 0,
+            '30-40K': 0,
+            '40-50K': 0,
+            '50-75K': 0,
+            '75-100K': 0,
+            '>100K': 0
+        };
+
+        data.forEach(d => {
+            const total = d.total;
+            if (total < 10000) buckets['0-10K']++;
+            else if (total < 20000) buckets['10-20K']++;
+            else if (total < 30000) buckets['20-30K']++;
+            else if (total < 40000) buckets['30-40K']++;
+            else if (total < 50000) buckets['40-50K']++;
+            else if (total < 75000) buckets['50-75K']++;
+            else if (total < 100000) buckets['75-100K']++;
+            else buckets['>100K']++;
+        });
+
+        new Chart(distCtx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(buckets),
+                datasets: [{
+                    label: 'Number of Requests',
+                    data: Object.values(buckets),
+                    backgroundColor: '#4dc8bf',
+                    borderColor: '#3a9b94',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Token Usage Distribution',
+                        font: { size: 18 }
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Token Range'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Number of Requests'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

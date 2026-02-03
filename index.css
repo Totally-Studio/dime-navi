@@ -1,0 +1,1715 @@
+/* ===== WIDGET CSS ISOLATION ===== */
+/* Override inherited styles from WordPress themes */
+.dime-notebook-widget-root,
+.dime-notebook-widget-root .widget-container,
+.dime-notebook-widget-root .sidebar-panel,
+.dime-notebook-widget-root .sidebar-panel-left,
+.dime-notebook-widget-root .sidebar-panel-top {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* Reset text sizes for all content */
+.dime-notebook-widget-root p,
+.dime-notebook-widget-root span,
+.dime-notebook-widget-root div,
+.dime-notebook-widget-root li,
+.dime-notebook-widget-root a {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+/* Specific size overrides */
+.dime-notebook-widget-root .text-sm {
+  font-size: 0.875rem !important;
+}
+
+.dime-notebook-widget-root .text-xs {
+  font-size: 0.75rem !important;
+}
+
+.dime-notebook-widget-root .text-lg {
+  font-size: 1.125rem !important;
+}
+
+.dime-notebook-widget-root .text-xl {
+  font-size: 1.25rem !important;
+}
+
+/* Button resets - prevent WordPress button styles */
+.dime-notebook-widget-root button {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  background-image: none !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Action bar button styling */
+.dime-notebook-widget-root .flex.items-center.gap-2.p-2 button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  padding: 0.25rem 0.5rem !important;
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  font-size: 0.875rem !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.dime-notebook-widget-root .flex.items-center.gap-2.p-2 button:hover {
+  background-color: #f9fafb !important;
+}
+
+/* Download button with cyan border */
+.dime-notebook-widget-root .flex.items-center.gap-2.p-2 button.border-2 {
+  border: 2px solid #06b6d4 !important;
+}
+
+/* Stop button styling */
+.dime-notebook-widget-root .flex.items-center.gap-2.p-2 button.bg-red-500 {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  padding: 0.375rem !important;
+}
+
+.dime-notebook-widget-root .flex.items-center.gap-2.p-2 button.bg-red-500:hover {
+  background-color: #dc2626 !important;
+}
+
+/* SVG icons in buttons - CRITICAL for WordPress */
+.dime-notebook-widget-root button svg,
+.dime-notebook-widget-root .flex.items-center.gap-2.p-2 button svg {
+  display: inline-block !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  min-width: 1rem !important;
+  min-height: 1rem !important;
+  flex-shrink: 0 !important;
+  vertical-align: middle !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.5 !important;
+}
+
+/* Ensure SVG paths are visible */
+.dime-notebook-widget-root button svg path {
+  stroke: currentColor !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+/* Prose/Response content */
+.dime-notebook-widget-root .prose,
+.dime-notebook-widget-root .prose p,
+.dime-notebook-widget-root .prose li {
+  font-size: 0.875rem !important;
+  line-height: 1.625 !important;
+}
+
+.dime-notebook-widget-root .prose h1,
+.dime-notebook-widget-root .prose h2,
+.dime-notebook-widget-root .prose h3 {
+  font-size: 1rem !important;
+  line-height: 1.4 !important;
+}
+
+/* You: and Assistant: label highlights */
+.dime-notebook-widget-root .bg-teal-600 {
+  background-color: #0d9488 !important;
+  color: #ffffff !important;
+}
+
+.dime-notebook-widget-root .bg-cyan-600 {
+  background-color: #0891b2 !important;
+  color: #ffffff !important;
+}
+
+.dime-notebook-widget-root .text-white {
+  color: #ffffff !important;
+}
+
+.dime-notebook-widget-root .rounded-md {
+  border-radius: 0.375rem !important;
+}
+
+.dime-notebook-widget-root .px-3 {
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+.dime-notebook-widget-root .py-1 {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+
+.dime-notebook-widget-root .inline-block {
+  display: inline-block !important;
+}
+
+/* Reduce excessive spacing from WordPress p tag margins */
+.dime-notebook-widget-root p {
+  padding-bottom: 0 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.dime-notebook-widget-root .mt-8 {
+  margin-top: 2rem !important;
+}
+
+.dime-notebook-widget-root .mt-6 {
+  margin-top: 1.5rem !important;
+}
+
+.dime-notebook-widget-root .mb-3 {
+  margin-bottom: 0.75rem !important;
+}
+
+.dime-notebook-widget-root .pt-6 {
+  padding-top: 1.5rem !important;
+}
+
+.dime-notebook-widget-root .border-t-2 {
+  border-top-width: 2px !important;
+  border-top-style: solid !important;
+}
+
+.dime-notebook-widget-root .border-slate-200 {
+  border-color: #e2e8f0 !important;
+}
+
+/* You: and Assistant: labels - inline display */
+.dime-notebook-widget-root .you-label-container,
+.dime-notebook-widget-root .assistant-label-container {
+  display: inline !important;
+}
+
+/* Make streaming content inline so thinking text appears next to Assistant badge */
+.dime-notebook-widget-root .streaming-content,
+.dime-notebook-widget-root .streaming-content > div,
+.dime-notebook-widget-root .streaming-content .prose-custom {
+  display: inline !important;
+}
+
+/* Keep paragraphs as block but last one inline for the thinking text */
+.dime-notebook-widget-root .streaming-content .prose-custom > p:last-child {
+  display: inline !important;
+}
+
+/* Remove top padding from first paragraph */
+.dime-notebook-widget-root .prose-custom > p:first-child,
+.dime-notebook-widget-root .prose-custom > div:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* ============================================ */
+/* EMBEDDED INLINE DARK THEME RESPONSE STYLES */
+/* ============================================ */
+
+.embedded-inline-response {
+  color: #e2e8f0 !important;
+}
+
+.embedded-inline-response .prose-custom,
+.streaming-content-dark .prose-custom {
+  color: #e2e8f0 !important;
+}
+
+.streaming-content-dark .prose-custom h1,
+.streaming-content-dark .prose-custom h2,
+.streaming-content-dark .prose-custom h3,
+.streaming-content-dark .prose-custom h4,
+.streaming-content-dark .prose-custom h5,
+.streaming-content-dark .prose-custom h6 {
+  color: #f1f5f9 !important;
+}
+
+.streaming-content-dark .prose-custom p,
+.streaming-content-dark .prose-custom li,
+.streaming-content-dark .prose-custom span {
+  color: #e2e8f0 !important;
+}
+
+.streaming-content-dark .prose-custom strong {
+  color: #f1f5f9 !important;
+}
+
+.streaming-content-dark .prose-custom a {
+  color: #5eead4 !important;
+}
+
+.streaming-content-dark .prose-custom code {
+  background-color: rgba(0,0,0,0.3) !important;
+  color: #5eead4 !important;
+}
+
+.streaming-content-dark .prose-custom pre {
+  background-color: rgba(0,0,0,0.3) !important;
+}
+
+.streaming-content-dark .prose-custom blockquote {
+  border-left-color: #5eead4 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Reduce padding on response scroll container */
+.dime-notebook-widget-root .p-6 {
+  padding: 0.75rem 0.75rem !important;
+}
+
+/* Action bar - ensure it stays at bottom with no space below */
+.dime-notebook-widget-root .flex.items-center.gap-2.p-2.border-t {
+  flex-shrink: 0 !important;
+  position: relative !important;
+  z-index: 10 !important;
+  background-color: #f8fafc !important;
+  padding: 0.5rem !important;
+  margin: 0 !important;
+}
+
+/* Chat display area - no extra bottom spacing */
+.dime-notebook-widget-root .sidebar-chat-display {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Chat input area - match top padding of action bar */
+.dime-notebook-widget-root .sidebar-chat-input {
+  padding-top: 0.5rem !important;
+  margin-top: 0 !important;
+}
+
+/* Ensure flex column layout works */
+.dime-notebook-widget-root .flex.flex-col {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.dime-notebook-widget-root .flex-grow {
+  flex-grow: 1 !important;
+}
+
+.dime-notebook-widget-root .h-0 {
+  height: 0 !important;
+}
+
+.dime-notebook-widget-root .h-full {
+  height: 100% !important;
+}
+
+.dime-notebook-widget-root .overflow-y-auto {
+  overflow-y: auto !important;
+}
+
+/* References button - position at bottom right */
+.dime-notebook-widget-root .absolute {
+  position: absolute !important;
+}
+
+.dime-notebook-widget-root .bottom-14 {
+  bottom: 3.5rem !important;
+  top: auto !important;
+}
+
+.dime-notebook-widget-root .right-4 {
+  right: 1rem !important;
+}
+
+.dime-notebook-widget-root .z-40 {
+  z-index: 40 !important;
+}
+
+.dime-notebook-widget-root .rounded-full {
+  border-radius: 9999px !important;
+}
+
+.dime-notebook-widget-root .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Relative container for absolute positioning */
+.dime-notebook-widget-root .relative {
+  position: relative !important;
+}
+
+/* References panel collapse/expand */
+.dime-notebook-widget-root .max-h-0 {
+  max-height: 0 !important;
+}
+
+.dime-notebook-widget-root .max-h-96 {
+  max-height: 24rem !important;
+}
+
+.dime-notebook-widget-root .overflow-hidden {
+  overflow: hidden !important;
+}
+
+.dime-notebook-widget-root .border-transparent {
+  border-color: transparent !important;
+}
+
+.dime-notebook-widget-root .flex-shrink-0 {
+  flex-shrink: 0 !important;
+}
+
+/* Compact heading spacing for widget - override NaViStyles.css smd-content defaults */
+.dime-notebook-widget-root .smd-content h1,
+.dime-notebook-widget-root .smd-content h2,
+.dime-notebook-widget-root .smd-content h3,
+.dime-notebook-widget-root .smd-content h4,
+.dime-notebook-widget-root .smd-content h5,
+.dime-notebook-widget-root .smd-content h6 {
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+  line-height: 1.3 !important;
+}
+
+.dime-notebook-widget-root .smd-content h1 {
+  font-size: 1.1rem !important;
+}
+
+.dime-notebook-widget-root .smd-content h2 {
+  font-size: 1rem !important;
+}
+
+.dime-notebook-widget-root .smd-content h3,
+.dime-notebook-widget-root .smd-content h4,
+.dime-notebook-widget-root .smd-content h5,
+.dime-notebook-widget-root .smd-content h6 {
+  font-size: 0.9375rem !important;
+}
+
+/* Compact paragraph and list spacing in widget */
+.dime-notebook-widget-root .smd-content p {
+  margin-bottom: 0.5rem !important;
+}
+
+.dime-notebook-widget-root .smd-content ul,
+.dime-notebook-widget-root .smd-content ol {
+  margin: 0.375rem 0 !important;
+}
+
+.dime-notebook-widget-root .smd-content li {
+  margin: 0.125rem 0 !important;
+}
+
+/* Standalone bold section headers - reduce margin */
+.dime-notebook-widget-root .smd-content p > strong:only-child {
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Citation links */
+.dime-notebook-widget-root .citation-link {
+  cursor: pointer;
+  color: #0891b2;
+}
+
+.dime-notebook-widget-root .citation-link:hover {
+  text-decoration: underline;
+}
+
+/* ===== END WIDGET CSS ISOLATION ===== */
+
+/* Peacock Teal Color Palette for Dime Theme */
+:root {
+  --color-peacock-teal-50: #f0f4f4;
+  --color-peacock-teal-100: #c2e9e5;
+  --color-peacock-teal-200: #98dad3;
+  --color-peacock-teal-300: #6ecbc0;
+  --color-peacock-teal-400: #44bbae;
+  --color-peacock-teal-500: #349187;
+  --color-peacock-teal-600: #256760;
+  --color-peacock-teal-700: #163d39;
+  --color-peacock-teal-800: #071311;
+}
+
+/* Peacock Teal Utility Classes */
+.bg-peacock-teal-50 { background-color: var(--color-peacock-teal-50); }
+.text-peacock-teal-50 { color: var(--color-peacock-teal-50); }
+.border-peacock-teal-50 { border-color: var(--color-peacock-teal-50); }
+.bg-peacock-teal-100 { background-color: var(--color-peacock-teal-100); }
+.text-peacock-teal-100 { color: var(--color-peacock-teal-100); }
+.border-peacock-teal-100 { border-color: var(--color-peacock-teal-100); }
+.bg-peacock-teal-200 { background-color: var(--color-peacock-teal-200); }
+.text-peacock-teal-200 { color: var(--color-peacock-teal-200); }
+.border-peacock-teal-200 { border-color: var(--color-peacock-teal-200); }
+.bg-peacock-teal-300 { background-color: var(--color-peacock-teal-300); }
+.text-peacock-teal-300 { color: var(--color-peacock-teal-300); }
+.border-peacock-teal-300 { border-color: var(--color-peacock-teal-300); }
+.bg-peacock-teal-400 { background-color: var(--color-peacock-teal-400); }
+.text-peacock-teal-400 { color: var(--color-peacock-teal-400); }
+.border-peacock-teal-400 { border-color: var(--color-peacock-teal-400); }
+.bg-peacock-teal-500 { background-color: var(--color-peacock-teal-500); }
+.text-peacock-teal-500 { color: var(--color-peacock-teal-500); }
+.border-peacock-teal-500 { border-color: var(--color-peacock-teal-500); }
+.bg-peacock-teal-600 { background-color: var(--color-peacock-teal-600); }
+.text-peacock-teal-600 { color: var(--color-peacock-teal-600); }
+.border-peacock-teal-600 { border-color: var(--color-peacock-teal-600); }
+.bg-peacock-teal-700 { background-color: var(--color-peacock-teal-700); }
+.text-peacock-teal-700 { color: var(--color-peacock-teal-700); }
+.border-peacock-teal-700 { border-color: var(--color-peacock-teal-700); }
+.bg-peacock-teal-800 { background-color: var(--color-peacock-teal-800); }
+.text-peacock-teal-800 { color: var(--color-peacock-teal-800); }
+.border-peacock-teal-800 { border-color: var(--color-peacock-teal-800); }
+
+/* Custom scrollbar styles */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225 / 0.5) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225 / 0.5);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(203 213 225 / 0.7);
+}
+
+/* Dark mode scrollbar */
+.dark .custom-scrollbar {
+  scrollbar-color: rgb(71 85 105 / 0.5) transparent;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(71 85 105 / 0.5);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(71 85 105 / 0.7);
+}
+
+/* Dime theme scrollbar */
+.dime .custom-scrollbar {
+  scrollbar-color: rgba(52, 145, 135, 0.3) transparent;
+}
+
+.dime .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(52, 145, 135, 0.3);
+}
+
+.dime .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(52, 145, 135, 0.5);
+}
+
+/* Dime Theme - Light theme with peacock teal accents */
+
+/* Main Header Bar - Dark peacock teal (#163d39) */
+.dime header {
+  background-color: #163d39 !important;
+  border-color: #163d39 !important;
+}
+.dime header h1,
+.dime header span,
+.dime header .text-sm {
+  color: var(--color-peacock-teal-50) !important;
+}
+.dime header .bg-gradient-to-r {
+  background: var(--color-peacock-teal-100) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+.dime header button {
+  background-color: var(--color-peacock-teal-500) !important;
+  color: var(--color-peacock-teal-50) !important;
+}
+.dime header button:hover {
+  background-color: var(--color-peacock-teal-400) !important;
+}
+.dime header .bg-cyan-600 {
+  background-color: var(--color-peacock-teal-400) !important;
+}
+.dime header .bg-cyan-600:hover {
+  background-color: var(--color-peacock-teal-300) !important;
+}
+
+/* Page Background - Light with subtle teal tint */
+.dime.min-h-screen {
+  background-color: var(--color-peacock-teal-50) !important;
+  color: #1e293b !important;
+}
+
+/* Panels - White backgrounds */
+.dime .bg-white { background-color: #ffffff !important; }
+.dime .dark\:bg-slate-800\/50 { background-color: #ffffff !important; }
+
+/* Panel Headers - Medium peacock teal (#256760) */
+.dime .bg-slate-100 { background-color: #256760 !important; }
+.dime .dark\:bg-slate-800\/70 { background-color: #256760 !important; }
+
+/* Panel Footers - Very light teal */
+.dime .bg-slate-50 { background-color: var(--color-peacock-teal-50) !important; }
+.dime .dark\:bg-slate-900\/30 { background-color: var(--color-peacock-teal-50) !important; }
+
+/* Buttons - White with peacock teal on hover */
+.dime button.bg-white { background-color: #ffffff !important; }
+.dime button.bg-white:hover { background-color: var(--color-peacock-teal-100) !important; }
+.dime button.dark\:bg-slate-700\/80 { background-color: #ffffff !important; }
+.dime button.dark\:bg-slate-700\/80:hover { background-color: var(--color-peacock-teal-100) !important; }
+
+/* Buttons in dark headers - Need light text */
+.dime .bg-slate-100 button,
+.dime .dark\:bg-slate-800\/70 button {
+  color: var(--color-peacock-teal-50) !important;
+}
+.dime .bg-slate-100 button.bg-white,
+.dime .dark\:bg-slate-800\/70 button.bg-white {
+  background-color: var(--color-peacock-teal-500) !important;
+  color: var(--color-peacock-teal-50) !important;
+}
+.dime .bg-slate-100 button.bg-white:hover,
+.dime .dark\:bg-slate-800\/70 button.bg-white:hover {
+  background-color: var(--color-peacock-teal-400) !important;
+}
+
+/* Borders - Peacock teal borders */
+.dime .border-slate-200,
+.dime .dark\:border-slate-700 { border-color: var(--color-peacock-teal-200) !important; }
+.dime .border-slate-300,
+.dime .dark\:border-slate-600 { border-color: var(--color-peacock-teal-300) !important; }
+
+/* Text Colors - Dark text on light background */
+.dime .text-slate-900,
+.dime .text-slate-800 { color: var(--color-peacock-teal-800) !important; }
+.dime .text-slate-700 { color: var(--color-peacock-teal-700) !important; }
+.dime .text-slate-600,
+.dime .text-slate-500 { color: var(--color-peacock-teal-600) !important; }
+
+/* Text Colors - Light text in dark headers */
+.dime .bg-slate-100 .text-slate-900,
+.dime .dark\:bg-slate-800\/70 .text-slate-900,
+.dime .bg-slate-100 .dark\:text-slate-200,
+.dime .dark\:bg-slate-800\/70 .dark\:text-slate-200 { color: var(--color-peacock-teal-50) !important; }
+.dime .bg-slate-100 h2,
+.dime .dark\:bg-slate-800\/70 h2 { color: var(--color-peacock-teal-50) !important; }
+.dime .dark\:text-slate-200 { color: var(--color-peacock-teal-800) !important; }
+.dime .dark\:text-slate-100 { color: var(--color-peacock-teal-800) !important; }
+.dime .dark\:text-slate-300 { color: var(--color-peacock-teal-700) !important; }
+.dime .dark\:text-slate-400 { color: var(--color-peacock-teal-600) !important; }
+
+/* Cards & Nested Elements - Light teal */
+.dime .bg-slate-50 { background-color: var(--color-peacock-teal-50) !important; }
+.dime .dark\:bg-slate-900\/50 { background-color: var(--color-peacock-teal-50) !important; }
+
+/* Select Dropdowns - White with teal border */
+.dime select {
+  background-color: #ffffff !important;
+  color: var(--color-peacock-teal-800) !important;
+  border-color: var(--color-peacock-teal-300) !important;
+}
+.dime select:focus {
+  --tw-ring-color: var(--color-peacock-teal-400) !important;
+  border-color: var(--color-peacock-teal-400) !important;
+}
+
+/* Input Fields - White background */
+.dime textarea,
+.dime input[type="text"],
+.dime input[type="search"],
+.dime input[type="checkbox"] {
+  background-color: #ffffff !important;
+  color: var(--color-peacock-teal-800) !important;
+  border-color: var(--color-peacock-teal-300) !important;
+}
+.dime textarea::placeholder,
+.dime input::placeholder { color: var(--color-peacock-teal-400) !important; }
+
+/* Accent Colors - Cyan replaced with peacock teal */
+.dime .bg-cyan-500 { background-color: var(--color-peacock-teal-500) !important; }
+.dime .bg-cyan-600 { background-color: var(--color-peacock-teal-600) !important; }
+.dime .bg-cyan-600:hover,
+.dime .bg-cyan-500:hover { background-color: var(--color-peacock-teal-500) !important; }
+.dime .text-cyan-600,
+.dime .text-cyan-500,
+.dime .dark\:text-cyan-400 { color: var(--color-peacock-teal-600) !important; }
+.dime .border-cyan-400 { border-color: var(--color-peacock-teal-400) !important; }
+.dime .dark\:border-cyan-500\/50 { border-color: var(--color-peacock-teal-400) !important; }
+
+/* Theme toggle button in dime theme */
+.dime .bg-slate-200 { background-color: var(--color-peacock-teal-200) !important; }
+.dime .dark\:bg-slate-700 { background-color: var(--color-peacock-teal-200) !important; }
+.dime .hover\:bg-slate-300:hover { background-color: var(--color-peacock-teal-300) !important; }
+.dime .dark\:hover\:bg-slate-600:hover { background-color: var(--color-peacock-teal-300) !important; }
+
+/* Citation Styles */
+.citation-link {
+  cursor: pointer;
+  color: #0891b2; /* cyan-600 */
+  font-size: 0.75em;
+  font-weight: 600;
+  margin-left: 1px;
+  margin-right: 1px;
+  transition: color 0.2s ease;
+}
+
+.citation-link:hover {
+  color: #0e7490; /* cyan-700 */
+  text-decoration: underline;
+}
+
+.dark .citation-link {
+  color: #22d3ee; /* cyan-400 */
+}
+
+.dark .citation-link:hover {
+  color: #67e8f9; /* cyan-300 */
+}
+
+.dime .citation-link {
+  color: var(--color-peacock-teal-600);
+}
+
+.dime .citation-link:hover {
+  color: var(--color-peacock-teal-500);
+}
+
+/* Citation Tooltip */
+.citation-tooltip {
+  animation: fadeIn 0.15s ease-in;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+
+/* Pulsing green indicator animation */
+@keyframes pulse-green {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 6px #22c55e;
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 10px #22c55e, 0 0 20px rgba(34, 197, 94, 0.4);
+  }
+}
+
+/* Reference List */
+.reference-list {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================ */
+/* EMBEDDED SIDEBAR STYLES */
+/* ============================================ */
+
+/* Embedded container - holds iframe and sidebar */
+.embedded-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Background iframe */
+.embedded-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  z-index: 1;
+}
+
+/* Iframe fallback for when iframe cannot load */
+.embedded-iframe-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-peacock-teal-50) 0%, #e0f2f1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.embedded-iframe-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+}
+
+/* Background image alternative */
+.embedded-background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+.embedded-url-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(22, 61, 57, 0.95);
+  color: var(--color-peacock-teal-50);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.embedded-url-banner a {
+  color: var(--color-peacock-teal-100);
+  text-decoration: none;
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 1000002;
+  background-color: #163d39;
+  color: var(--color-peacock-teal-50);
+  padding: 12px 8px;
+  border: none;
+  border-radius: 8px 0 0 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
+}
+
+.sidebar-toggle:hover {
+  background-color: var(--color-peacock-teal-600);
+  padding-right: 12px;
+}
+
+.sidebar-toggle svg,
+.sidebar-toggle-left svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.sidebar-toggle.sidebar-open {
+  right: 450px;
+}
+
+@media (max-width: 768px) {
+  .sidebar-toggle.sidebar-open {
+    right: 0;
+    opacity: 0.8;
+  }
+}
+
+/* Sidebar backdrop - semi-transparent overlay */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000000;
+  animation: fadeIn 0.3s ease;
+  pointer-events: auto;
+}
+
+/* Sidebar panel */
+.sidebar-panel {
+  position: fixed;
+  top: 5vh;
+  right: 0;
+  width: 450px;
+  max-width: 100vw;
+  height: 90vh;
+  background-color: var(--color-peacock-teal-50);
+  z-index: 1000001;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
+  animation: slideInRight 0.3s ease;
+  pointer-events: auto;
+  border-radius: 12px 0 0 12px;
+}
+
+@media (max-width: 768px) {
+  .sidebar-panel {
+    width: 100vw;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ============================================ */
+/* SIDEBAR CHAT STYLES */
+/* ============================================ */
+
+.sidebar-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Chat header */
+.sidebar-chat-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: #163d39;
+  border-bottom: 1px solid var(--color-peacock-teal-600);
+}
+
+.sidebar-btn-icon {
+  background-color: var(--color-peacock-teal-500);
+  color: var(--color-peacock-teal-50);
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.sidebar-btn-icon:hover {
+  background-color: var(--color-peacock-teal-400);
+}
+
+/* Chat display area */
+.sidebar-chat-display {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  background-color: white;
+}
+
+/* Chat input area */
+.sidebar-chat-input {
+  flex-shrink: 0;
+  padding: 12px;
+  background-color: var(--color-peacock-teal-50);
+  border-top: 1px solid var(--color-peacock-teal-200);
+}
+
+.sidebar-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--color-peacock-teal-300);
+  border-radius: 8px;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: white;
+  color: var(--color-peacock-teal-800);
+}
+
+.sidebar-textarea:focus {
+  outline: none;
+  border-color: var(--color-peacock-teal-500);
+  box-shadow: 0 0 0 2px rgba(52, 145, 135, 0.1);
+}
+
+.sidebar-textarea::placeholder {
+  color: var(--color-peacock-teal-400);
+}
+
+.sidebar-submit-btn {
+  padding: 6px 14px;
+  background-color: var(--color-peacock-teal-600);
+  color: var(--color-peacock-teal-50);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.sidebar-submit-btn:hover:not(:disabled) {
+  background-color: var(--color-peacock-teal-500);
+}
+
+.sidebar-submit-btn:disabled {
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* Controls row below textarea */
+.sidebar-input-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* Source count badge - ghost button style */
+.sidebar-input-source-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background-color: transparent;
+  color: var(--color-peacock-teal-300);
+  border: 1px solid var(--color-peacock-teal-400);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.sidebar-input-source-badge:hover {
+  opacity: 1;
+}
+
+/* Pulsing green dot for "connected" status */
+.source-badge-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 3px #22c55e;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 3px #22c55e;
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.85);
+    box-shadow: 0 0 6px #22c55e;
+  }
+}
+
+.sidebar-source-count {
+  background-color: rgba(255, 255, 255, 0.25);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* ============================================ */
+/* SIDEBAR KNOWLEDGE SELECTOR STYLES */
+/* ============================================ */
+
+.sidebar-knowledge-selector {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-peacock-teal-200);
+  background-color: white;
+}
+
+.sidebar-knowledge-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: var(--color-peacock-teal-100);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: var(--color-peacock-teal-800);
+}
+
+.sidebar-knowledge-header:hover {
+  background-color: var(--color-peacock-teal-200);
+}
+
+.sidebar-category-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  background-color: white;
+  border-bottom: 1px solid var(--color-peacock-teal-200);
+}
+
+.sidebar-category-tab {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: white;
+  color: var(--color-peacock-teal-700);
+  border: 1px solid var(--color-peacock-teal-300);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-category-tab:hover {
+  background-color: var(--color-peacock-teal-50);
+  border-color: var(--color-peacock-teal-400);
+}
+
+.sidebar-category-tab.active {
+  background-color: var(--color-peacock-teal-600);
+  color: var(--color-peacock-teal-50);
+  border-color: var(--color-peacock-teal-600);
+}
+
+.sidebar-source-badge {
+  background-color: var(--color-peacock-teal-600);
+  color: var(--color-peacock-teal-50);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sidebar-knowledge-content {
+  padding: 12px;
+  background-color: white;
+  animation: slideDown 0.2s ease;
+}
+
+.sidebar-knowledge-actions {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sidebar-knowledge-action-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  background-color: var(--color-peacock-teal-100);
+  color: var(--color-peacock-teal-800);
+  border: 1px solid var(--color-peacock-teal-300);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sidebar-knowledge-action-btn:hover {
+  background-color: var(--color-peacock-teal-200);
+  border-color: var(--color-peacock-teal-400);
+}
+
+.sidebar-knowledge-list {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-knowledge-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--color-peacock-teal-200);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: white;
+}
+
+.sidebar-knowledge-item:hover {
+  background-color: var(--color-peacock-teal-50);
+  border-color: var(--color-peacock-teal-400);
+}
+
+.sidebar-checkbox {
+  margin-top: 2px;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.sidebar-resource-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-peacock-teal-800);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.sidebar-resource-group {
+  font-size: 11px;
+  color: var(--color-peacock-teal-500);
+  margin-top: 2px;
+}
+
+/* ============================================ */
+/* SIDEBAR PERSONA SELECTOR STYLES */
+/* ============================================ */
+
+.sidebar-persona-selector {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-peacock-teal-200);
+  background-color: white;
+}
+
+.sidebar-persona-header {
+  padding: 12px 16px 8px 16px;
+  background-color: white;
+}
+
+.sidebar-persona-content {
+  padding: 0 16px 12px 16px;
+  background-color: white;
+}
+
+.sidebar-persona-select {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  font-size: 14px;
+  background-color: white;
+  color: var(--color-peacock-teal-800);
+  border: 1px solid var(--color-peacock-teal-300);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  appearance: none;
+}
+
+.sidebar-persona-select:hover {
+  border-color: var(--color-peacock-teal-400);
+  background-color: var(--color-peacock-teal-50);
+}
+
+.sidebar-persona-select:focus {
+  outline: none;
+  border-color: var(--color-peacock-teal-500);
+  box-shadow: 0 0 0 2px rgba(52, 145, 135, 0.1);
+}
+
+.sidebar-persona-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-peacock-teal-600);
+  pointer-events: none;
+}
+
+/* Inline persona selector (in Knowledge Sources actions row) */
+.sidebar-persona-select-inline {
+  width: 100%;
+  padding: 6px 28px 6px 10px;
+  font-size: 12px;
+  background-color: white;
+  color: var(--color-peacock-teal-800);
+  border: 1px solid var(--color-peacock-teal-300);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  appearance: none;
+}
+
+.sidebar-persona-select-inline:hover {
+  border-color: var(--color-peacock-teal-400);
+  background-color: var(--color-peacock-teal-50);
+}
+
+.sidebar-persona-select-inline:focus {
+  outline: none;
+  border-color: var(--color-peacock-teal-500);
+  box-shadow: 0 0 0 2px rgba(52, 145, 135, 0.1);
+}
+
+.sidebar-persona-icon-inline {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: var(--color-peacock-teal-600);
+  pointer-events: none;
+}
+
+/* Quick Action Buttons in Sidebar */
+.sidebar-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 12px;
+  background-color: white;
+}
+
+.sidebar-quick-action-btn {
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  background-color: white;
+  color: var(--color-peacock-teal-700);
+  border: 1px solid var(--color-peacock-teal-300);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-quick-action-btn:hover {
+  background-color: var(--color-peacock-teal-50);
+  border-color: var(--color-peacock-teal-400);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(52, 145, 135, 0.1);
+}
+
+.sidebar-quick-action-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Icon sizing fixes for sidebar */
+.sidebar-knowledge-header svg,
+.sidebar-chat-header svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sidebar-panel svg.w-6,
+.sidebar-panel svg.h-6 {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* ============================================ */
+/* WIDGET CONTAINER STYLES                      */
+/* ============================================ */
+
+.widget-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999999;
+}
+
+.widget-container * {
+  pointer-events: auto;
+}
+
+/* Left-aligned sidebar */
+.sidebar-panel-left {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 450px;
+  max-width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to bottom, var(--color-peacock-teal-700), var(--color-peacock-teal-600));
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.2);
+  z-index: 1000001;
+  display: flex;
+  flex-direction: column;
+  animation: slideInLeft 0.3s ease;
+  pointer-events: auto;
+}
+
+.sidebar-toggle-left {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  background-color: var(--color-peacock-teal-600);
+  color: var(--color-peacock-teal-50);
+  padding: 16px 8px;
+  border-radius: 0 8px 8px 0;
+  border: none;
+  cursor: pointer;
+  z-index: 1000002;
+  transition: all 0.3s ease;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
+}
+
+.sidebar-toggle-left.sidebar-open {
+  left: 450px;
+}
+
+.sidebar-toggle-left:hover {
+  background-color: var(--color-peacock-teal-500);
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar-panel-left {
+    width: 100vw;
+  }
+
+  .sidebar-toggle-left.sidebar-open {
+    left: calc(100vw - 48px);
+  }
+}
+
+/* ===== TOP TRAY POSITION ===== */
+
+.widget-container--top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999999;
+  pointer-events: none;
+}
+
+.sidebar-toggle-top {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000002;
+  background-color: var(--dime-button-color, var(--color-peacock-teal-600));
+  color: white;
+  border: none;
+  border-radius: 0 0 8px 8px;
+  padding: 8px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+.sidebar-toggle-top:hover {
+  background-color: var(--color-peacock-teal-500);
+}
+
+.sidebar-toggle-top svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar-toggle-top.sidebar-open {
+  top: 60vh;
+}
+
+.sidebar-panel-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60vh;
+  background-color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000001;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideInTop 0.3s ease forwards;
+  pointer-events: auto;
+}
+
+.sidebar-panel-top > div {
+  height: 100%;
+  overflow-y: auto;
+}
+
+@keyframes slideInTop {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Top tray responsive */
+@media (max-width: 768px) {
+  .sidebar-panel-top {
+    height: 80vh;
+  }
+
+  .sidebar-toggle-top.sidebar-open {
+    top: 80vh;
+  }
+}
+
+/* Top tray sidebar content layout */
+.sidebar-panel-top .sidebar-header {
+  flex-shrink: 0;
+}
+
+.sidebar-panel-top .sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+/* Horizontal layout for top tray */
+.sidebar-panel-top .knowledge-selector {
+  width: 300px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.sidebar-panel-top .chat-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================ */
+/* EMBEDDED TOP TEMPLATE STYLES                 */
+/* ============================================ */
+
+/* Main container styling for embedded-top template */
+.dime-notebook-widget-root .embedded-top-container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Two-column layout for embedded top */
+.dime-notebook-widget-root .embedded-top-content {
+  display: flex;
+  height: 100%;
+  gap: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.dime-notebook-widget-root .embedded-top-chat-column,
+.dime-notebook-widget-root .embedded-top-resources-column {
+  flex: 1 1 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chat card styling */
+.dime-notebook-widget-root .embedded-top-chat-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Resources card styling */
+.dime-notebook-widget-root .embedded-top-resources-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Resource grid */
+.dime-notebook-widget-root .embedded-top-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+/* Resource card */
+.dime-notebook-widget-root .embedded-top-resource-item {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dime-notebook-widget-root .embedded-top-resource-item:hover {
+  border-color: #163d39;
+  background-color: #f0f9f8;
+}
+
+.dime-notebook-widget-root .embedded-top-resource-item.selected {
+  border-color: #163d39;
+  background-color: #f0f9f8;
+}
+
+/* Toggle button for embedded-top */
+.dime-notebook-widget-root .embedded-top-toggle {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000002;
+  background-color: #163d39;
+  color: #f0f4f4;
+  border: none;
+  border-radius: 0 0 8px 8px;
+  padding: 8px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: top 0.3s ease;
+  pointer-events: auto;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dime-notebook-widget-root .embedded-top-toggle:hover {
+  background-color: #256760;
+}
+
+/* Panel backdrop */
+.dime-notebook-widget-root .embedded-top-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 1000000;
+  pointer-events: auto;
+}
+
+/* Panel content */
+.dime-notebook-widget-root .embedded-top-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #f8fafc;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000001;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideInTop 0.3s ease forwards;
+  pointer-events: auto;
+}
+
+/* Resize handle for embedded-top */
+.dime-notebook-widget-root .embedded-top-resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.dime-notebook-widget-root .embedded-top-resize-handle:hover {
+  background-color: rgba(6, 182, 212, 0.1);
+}
+
+.dime-notebook-widget-root .embedded-top-resize-indicator {
+  width: 40px;
+  height: 4px;
+  background-color: #cbd5e1;
+  border-radius: 2px;
+}
+
+/* Responsive styles for embedded-top */
+@media (max-width: 900px) {
+  .dime-notebook-widget-root .embedded-top-content {
+    flex-direction: column;
+  }
+
+  .dime-notebook-widget-root .embedded-top-chat-column,
+  .dime-notebook-widget-root .embedded-top-resources-column {
+    flex: none;
+    height: 50%;
+  }
+}
+
+@media (max-width: 600px) {
+  .dime-notebook-widget-root .embedded-top-resource-grid {
+    grid-template-columns: 1fr;
+  }
+}

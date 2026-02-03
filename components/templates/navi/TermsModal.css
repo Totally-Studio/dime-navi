@@ -1,0 +1,131 @@
+/* Terms Modal Overlay */
+.navi-terms-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Terms Modal Container */
+.navi-terms-modal {
+  position: relative;
+  background: #1a3838; /* bg-new-col9 equivalent */
+  border-radius: 12px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Close Button */
+.navi-terms-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: #77D5CD;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.navi-terms-modal-close:hover {
+  background: rgba(77, 200, 191, 0.1);
+  color: #4DC8BF;
+}
+
+/* Terms Content */
+.navi-terms-content {
+  color: #E8F5F4;
+}
+
+/* Accordion */
+.navi-terms-accordion {
+  padding-top: 0;
+}
+
+.navi-terms-title-bar {
+  display: flex;
+  align-items: center;
+  padding-bottom: 16px;
+}
+
+.navi-terms-title-bar h4 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #4DC8BF;
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Divider below title - teal color */
+.navi-terms-divider {
+  width: 100%;
+  height: 1px;
+  background: #4DC8BF;
+  margin-bottom: 24px;
+}
+
+/* Content */
+.navi-terms-content-wrap {
+  display: block;
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.navi-terms-content-wrap p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #E8F5F4;
+  margin: 0 0 20px 0;
+}
+
+.navi-terms-content-wrap ul {
+  list-style: disc;
+  padding-left: 24px;
+  margin: 20px 0;
+}
+
+.navi-terms-content-wrap li {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #E8F5F4;
+  margin: 12px 0;
+  padding-left: 8px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .navi-terms-modal {
+    padding: 24px;
+    max-height: 85vh;
+  }
+
+  .navi-terms-modal-close {
+    top: 12px;
+    right: 12px;
+  }
+
+  .navi-terms-title-bar h4 {
+    font-size: 1.5rem;
+  }
+
+  .navi-terms-content-wrap p,
+  .navi-terms-content-wrap li {
+    font-size: 0.9375rem;
+  }
+}

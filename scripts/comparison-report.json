@@ -1,0 +1,558 @@
+{
+  "comparedAt": "2026-02-03T04:26:05.957Z",
+  "wordPressFile": "combined_2026-02-03.json",
+  "firestoreFile": "all-documents_2026-02-03.json",
+  "summary": {
+    "wordpressTotal": 317,
+    "firestoreTotal": 313,
+    "newInWordPress": 10,
+    "deletedFromWordPress": 6,
+    "potentiallyUpdated": 62
+  },
+  "newItems": [
+    {
+      "id": 14794,
+      "title": "Technical Performance Assessment of Quantitative Imaging in Radiological Device Premarket Submissions",
+      "type": "resource",
+      "published": "2026-01-21T14:43:20",
+      "url": "https://navigator.dimesociety.org/resources/technical-performance-assessment-of-quantitative-imaging-in-radiological-device-premarket-submissions/"
+    },
+    {
+      "id": 14788,
+      "title": "General Wellness: Policy for Low Risk Devices",
+      "type": "resource",
+      "published": "2026-01-21T14:39:52",
+      "url": "https://navigator.dimesociety.org/resources/general-wellness-policy-for-low-risk-devices/"
+    },
+    {
+      "id": 14783,
+      "title": "Clinical Decision Support Software (2026)",
+      "type": "resource",
+      "published": "2026-01-21T14:35:40",
+      "url": "https://navigator.dimesociety.org/resources/clinical-decision-support-software-2026/"
+    },
+    {
+      "id": 16504,
+      "title": "Library Content",
+      "type": "page",
+      "published": "2026-01-28T09:03:48",
+      "url": "https://navigator.dimesociety.org/library-content/"
+    },
+    {
+      "id": 16511,
+      "title": "Roadmap",
+      "type": "page",
+      "published": "2026-01-28T09:03:46",
+      "url": "https://navigator.dimesociety.org/roadmap/"
+    },
+    {
+      "id": 16501,
+      "title": "NaVi Terms",
+      "type": "page",
+      "published": "2026-01-28T08:57:34",
+      "url": "https://navigator.dimesociety.org/navi-terms/"
+    },
+    {
+      "id": 12464,
+      "title": "Industry spotlight",
+      "type": "page",
+      "published": "2026-01-20T22:20:50",
+      "url": "https://navigator.dimesociety.org/engage-regulators/3-3-formal-qualification-programs/industry-spotlight/"
+    },
+    {
+      "id": 12469,
+      "title": "Regulatory spotlight",
+      "type": "page",
+      "published": "2026-01-20T21:55:14",
+      "url": "https://navigator.dimesociety.org/engage-regulators/3-3-formal-qualification-programs/regulatory-spotlight/"
+    },
+    {
+      "id": 12502,
+      "title": "3.4 Examples in practice",
+      "type": "page",
+      "published": "2026-01-07T19:57:40",
+      "url": "https://navigator.dimesociety.org/engage-regulators/3-4-examples-in-practice/"
+    },
+    {
+      "id": 12460,
+      "title": "3.3 Formal qualification programs",
+      "type": "page",
+      "published": "2026-01-07T19:40:55",
+      "url": "https://navigator.dimesociety.org/engage-regulators/3-3-formal-qualification-programs/"
+    }
+  ],
+  "deletedItems": [
+    {
+      "id": 12454,
+      "title": "Resource Content",
+      "contentType": "roadmap",
+      "lastSynced": "2026-01-16T10:06:57.404Z"
+    },
+    {
+      "id": 12457,
+      "title": "Test Page",
+      "contentType": "roadmap",
+      "lastSynced": "2026-01-16T10:06:57.404Z"
+    },
+    {
+      "id": 12477,
+      "title": "Page 3.3",
+      "contentType": "roadmap",
+      "lastSynced": "2026-01-16T10:06:57.404Z"
+    },
+    {
+      "id": 12479,
+      "title": "Page 3.4",
+      "contentType": "roadmap",
+      "lastSynced": "2026-01-16T10:06:57.404Z"
+    },
+    {
+      "id": 12488,
+      "title": "Roadmap",
+      "contentType": "roadmap",
+      "lastSynced": "2026-01-16T10:06:57.404Z"
+    },
+    {
+      "id": 65,
+      "title": "Regulatory spotlight",
+      "contentType": "roadmap",
+      "lastSynced": "2026-01-16T10:06:57.439Z"
+    }
+  ],
+  "updatedItems": [
+    {
+      "id": 251,
+      "title": "Qualification opinion on stride velocity 95th centile as a secondary endpoint in Duchenne Muscular Dystrophy measured by a valid and suitable wearable device",
+      "wpModified": "2026-01-12T03:16:22.000Z",
+      "fsModified": "2025-12-04T17:04:28.000Z",
+      "type": "resource"
+    },
+    {
+      "id": 249,
+      "title": "Qualification Opinion for Stride velocity 95th centile as primary endpoint in studies in ambulatory Duchenne Muscular Dystrophy studies",
+      "wpModified": "2026-01-12T03:18:25.000Z",
+      "fsModified": "2025-12-04T17:04:26.000Z",
+      "type": "resource"
+    },
+    {
+      "id": 12134,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-27T20:53:07.000Z",
+      "fsModified": "2025-12-18T13:54:03.000Z",
+      "type": "page"
+    },
+    {
+      "id": 11746,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-20T13:19:32.000Z",
+      "fsModified": "2025-12-11T14:34:41.000Z",
+      "type": "page"
+    },
+    {
+      "id": 11738,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-27T20:50:20.000Z",
+      "fsModified": "2025-12-11T14:28:48.000Z",
+      "type": "page"
+    },
+    {
+      "id": 10778,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-26T07:09:43.000Z",
+      "fsModified": "2025-12-11T14:25:49.000Z",
+      "type": "page"
+    },
+    {
+      "id": 6379,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-27T21:27:03.000Z",
+      "fsModified": "2025-12-16T14:38:32.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3947,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T13:46:17.000Z",
+      "fsModified": "2025-12-11T19:29:49.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3942,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-20T13:43:10.000Z",
+      "fsModified": "2025-12-11T14:30:50.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3940,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T13:37:50.000Z",
+      "fsModified": "2025-12-11T19:29:35.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3930,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T13:34:20.000Z",
+      "fsModified": "2025-12-11T19:29:28.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3925,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T13:29:33.000Z",
+      "fsModified": "2025-12-11T19:29:14.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3920,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T07:59:52.000Z",
+      "fsModified": "2025-12-11T19:28:48.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3917,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-20T16:32:12.000Z",
+      "fsModified": "2025-11-21T20:03:32.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3913,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T07:24:37.000Z",
+      "fsModified": "2025-12-11T19:28:06.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3906,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-19T14:57:27.000Z",
+      "fsModified": "2025-12-11T19:27:49.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3901,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-19T08:59:00.000Z",
+      "fsModified": "2025-12-11T19:27:33.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3898,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-27T20:42:43.000Z",
+      "fsModified": "2025-12-11T14:25:23.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1234,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-27T20:54:13.000Z",
+      "fsModified": "2025-12-19T09:33:58.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1229,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-25T17:23:39.000Z",
+      "fsModified": "2025-12-19T08:35:20.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1232,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-20T13:56:27.000Z",
+      "fsModified": "2025-12-19T08:25:38.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1252,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-20T16:23:30.000Z",
+      "fsModified": "2025-12-19T07:27:31.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1246,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-26T08:35:19.000Z",
+      "fsModified": "2025-12-19T06:42:13.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1224,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T22:24:44.000Z",
+      "fsModified": "2025-12-11T19:25:39.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1227,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-21T14:25:37.000Z",
+      "fsModified": "2025-11-16T17:59:45.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3880,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T23:10:21.000Z",
+      "fsModified": "2025-12-18T13:59:26.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3865,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-20T16:22:13.000Z",
+      "fsModified": "2025-12-17T14:27:00.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3853,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-25T17:45:20.000Z",
+      "fsModified": "2025-12-17T12:54:00.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3111,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-20T19:57:38.000Z",
+      "fsModified": "2025-12-16T15:04:18.000Z",
+      "type": "page"
+    },
+    {
+      "id": 3863,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-20T16:21:34.000Z",
+      "fsModified": "2025-12-18T13:55:02.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1952,
+      "title": "2.4 Choosing the sDHT",
+      "wpModified": "2026-01-28T13:11:07.000Z",
+      "fsModified": "2025-12-17T15:38:13.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1220,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-22T21:58:56.000Z",
+      "fsModified": "2025-12-11T19:25:23.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1217,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-21T14:20:30.000Z",
+      "fsModified": "2025-12-11T14:23:42.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1554,
+      "title": "6.4 Open science",
+      "wpModified": "2026-01-28T05:23:37.000Z",
+      "fsModified": "2025-12-17T15:47:02.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1550,
+      "title": "6.3 Business case refinement",
+      "wpModified": "2026-01-28T04:58:56.000Z",
+      "fsModified": "2025-12-03T15:20:16.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1547,
+      "title": "6.2 Stakeholder feedback",
+      "wpModified": "2026-01-28T04:34:45.000Z",
+      "fsModified": "2025-12-03T15:19:14.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1545,
+      "title": "6.1 Digital retrospective",
+      "wpModified": "2026-01-28T01:55:46.000Z",
+      "fsModified": "2025-12-17T15:46:20.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1542,
+      "title": "6. Refine your strategy",
+      "wpModified": "2026-01-28T17:29:20.000Z",
+      "fsModified": "2025-12-01T17:25:39.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1306,
+      "title": "5.4 Risk mitigation",
+      "wpModified": "2026-01-29T17:04:12.000Z",
+      "fsModified": "2026-01-05T17:35:27.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1322,
+      "title": "5.3 Trial monitoring",
+      "wpModified": "2026-01-29T17:03:59.000Z",
+      "fsModified": "2025-12-17T15:45:10.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1320,
+      "title": "5.2 Pre-trial: Achieve first participant in (FPI) readiness",
+      "wpModified": "2026-01-29T17:03:49.000Z",
+      "fsModified": "2025-12-17T15:44:50.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1318,
+      "title": "5.1 Data matters: Architecture, privacy, and oversight",
+      "wpModified": "2026-01-29T17:03:10.000Z",
+      "fsModified": "2025-12-17T15:44:25.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1315,
+      "title": "5. Operationalize your tech",
+      "wpModified": "2026-01-29T17:05:06.000Z",
+      "fsModified": "2025-11-14T21:10:52.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1154,
+      "title": "4.4 Clinical validation",
+      "wpModified": "2026-01-29T17:00:55.000Z",
+      "fsModified": "2025-12-17T15:44:10.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1147,
+      "title": "4.3 Analytical validation",
+      "wpModified": "2026-01-29T17:00:43.000Z",
+      "fsModified": "2025-12-17T15:42:57.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1152,
+      "title": "4.2 Usability validation",
+      "wpModified": "2026-01-29T17:00:27.000Z",
+      "fsModified": "2026-01-05T15:18:50.000Z",
+      "type": "page"
+    },
+    {
+      "id": 1150,
+      "title": "4.1 Technical verification",
+      "wpModified": "2026-01-29T17:00:17.000Z",
+      "fsModified": "2026-01-05T15:19:03.000Z",
+      "type": "page"
+    },
+    {
+      "id": 612,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-25T17:36:48.000Z",
+      "fsModified": "2025-12-11T19:22:54.000Z",
+      "type": "page"
+    },
+    {
+      "id": 281,
+      "title": "Home",
+      "wpModified": "2026-02-02T20:55:18.000Z",
+      "fsModified": "2026-01-15T15:08:01.000Z",
+      "type": "page"
+    },
+    {
+      "id": 88,
+      "title": "3.2 Navigating regulatory pathways",
+      "wpModified": "2026-02-02T17:37:11.000Z",
+      "fsModified": "2025-12-18T23:28:12.000Z",
+      "type": "page"
+    },
+    {
+      "id": 90,
+      "title": "3.1 Preparing for effective regulator engagement",
+      "wpModified": "2026-02-02T17:17:51.000Z",
+      "fsModified": "2026-01-06T16:51:21.000Z",
+      "type": "page"
+    },
+    {
+      "id": 86,
+      "title": "2.3 Stakeholder alignment",
+      "wpModified": "2026-01-28T12:50:44.000Z",
+      "fsModified": "2025-12-17T15:40:03.000Z",
+      "type": "page"
+    },
+    {
+      "id": 84,
+      "title": "2.2 Context of use",
+      "wpModified": "2026-01-28T12:40:27.000Z",
+      "fsModified": "2025-12-17T14:51:41.000Z",
+      "type": "page"
+    },
+    {
+      "id": 82,
+      "title": "2.1 Patient-informed endpoints",
+      "wpModified": "2026-01-28T12:27:43.000Z",
+      "fsModified": "2025-12-17T14:20:10.000Z",
+      "type": "page"
+    },
+    {
+      "id": 63,
+      "title": "Industry spotlight",
+      "wpModified": "2026-01-30T12:57:57.000Z",
+      "fsModified": "2025-12-11T14:54:25.000Z",
+      "type": "page"
+    },
+    {
+      "id": 54,
+      "title": "Regulatory spotlight",
+      "wpModified": "2026-01-29T16:16:46.000Z",
+      "fsModified": "2026-01-09T12:10:22.000Z",
+      "type": "page"
+    },
+    {
+      "id": 50,
+      "title": "1.2 Your business case",
+      "wpModified": "2026-01-26T11:53:42.000Z",
+      "fsModified": "2025-12-09T14:50:43.000Z",
+      "type": "page"
+    },
+    {
+      "id": 48,
+      "title": "1.1 Patient-focused development",
+      "wpModified": "2026-01-28T12:13:57.000Z",
+      "fsModified": "2025-12-10T18:15:32.000Z",
+      "type": "page"
+    },
+    {
+      "id": 37,
+      "title": "4. Your validation strategy",
+      "wpModified": "2026-01-29T17:01:52.000Z",
+      "fsModified": "2026-01-05T15:14:30.000Z",
+      "type": "page"
+    },
+    {
+      "id": 35,
+      "title": "3. Engage regulators",
+      "wpModified": "2026-01-28T17:23:59.000Z",
+      "fsModified": "2025-12-02T14:44:25.000Z",
+      "type": "page"
+    },
+    {
+      "id": 33,
+      "title": "2. Your core strategy",
+      "wpModified": "2026-01-28T17:16:43.000Z",
+      "fsModified": "2025-12-16T03:32:52.000Z",
+      "type": "page"
+    },
+    {
+      "id": 31,
+      "title": "1. Why digital?",
+      "wpModified": "2026-01-28T17:16:25.000Z",
+      "fsModified": "2025-12-08T18:45:39.000Z",
+      "type": "page"
+    }
+  ]
+}

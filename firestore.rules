@@ -1,0 +1,76 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // User's outputs subcollection
+      match /outputs/{outputId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User's chat history subcollection
+      match /chatHistory/{chatId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User's bookmarks subcollection
+      match /bookmarks/{bookmarkId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Knowledge base collections - read-only for authenticated users
+    match /knowledgeBase/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only via console
+    }
+
+    match /knowledgebase_wp/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only via console
+    }
+
+    match /knowledgebase_htg/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only via console
+    }
+
+    // Timestamped knowledge base
+    match /knowledgebase_wp_2026-01-16T10-05-04/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only via console
+    }
+
+    // Knowledge base configuration
+    match /knowledgebase_config/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only via console
+    }
+
+    // AI logs - authenticated users can write their own logs
+    match /ai_logs/{logId} {
+      allow read: if false; // Admin only
+      allow write: if isAuthenticated();
+    }
+
+    // 📊 PROMPT METRICS - authenticated users can write their own metrics
+    match /prompt_metrics/{metricId} {
+      allow read: if false; // Admin only - use Firebase Console to view
+      allow write: if isAuthenticated(); // Any authenticated user can log metrics
+    }
+  }
+}

@@ -1,0 +1,440 @@
+/* ============================================
+   ResponseContent.css - Streaming Markdown Styles
+   Single source of truth for NaVi chat responses
+
+   This file defines all .smd-content styles for the
+   streaming-markdown library output in NaVi widget.
+   ============================================ */
+
+/* Base container */
+.smd-content {
+    font-family: var(--navi-font-family, "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+    font-size: 15px !important;
+    line-height: 1.65;
+    color: var(--navi-text-primary, #E8F5F4);
+}
+
+/* Also apply base styles when inside message bubble */
+.navi-message-bubble .smd-content {
+    font-family: var(--navi-font-family, "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif);
+}
+
+/* ============================================
+   PARAGRAPHS
+   ============================================ */
+.smd-content p {
+    margin: 0 0 1rem 0;
+    line-height: 1.65;
+}
+
+.smd-content > p:last-child {
+    margin-bottom: 0;
+}
+
+/* ============================================
+   HEADINGS - Following prompt hierarchy
+   H2: Major sections (border-bottom)
+   H3: Subsections
+   H4: Sub-subsections
+   ============================================ */
+.smd-content h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--navi-accent, #4DC8BF);
+    margin: 1.5rem 0 0.75rem 0;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+}
+
+.smd-content h2 {
+    font-family: var(--navi-font-family, "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif) !important;
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: var(--navi-accent, #4DC8BF) !important;
+    margin: 2.5rem 0 0.75rem 0 !important;
+    line-height: 1.3 !important;
+    padding-bottom: 0.5rem !important;
+    border-bottom: 1px solid var(--navi-border, rgba(41, 113, 112, 0.3)) !important;
+    display: block !important;
+}
+
+.smd-content h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--navi-accent, #4DC8BF);
+    margin: 1.5rem 0 0.5rem 0;
+    line-height: 1.4;
+}
+
+.smd-content h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navi-text-primary, #E8F5F4);
+    margin: 1.25rem 0 0.5rem 0;
+    line-height: 1.4;
+}
+
+.smd-content h5,
+.smd-content h6 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navi-text-primary, #E8F5F4);
+    margin: 0.875rem 0 0.375rem 0;
+    line-height: 1.4;
+}
+
+/* First heading - no top margin */
+.smd-content > h1:first-child,
+.smd-content > h2:first-child,
+.smd-content > h3:first-child,
+.smd-content > h4:first-child {
+    margin-top: 0;
+}
+
+/* ============================================
+   TEXT EMPHASIS
+   ============================================ */
+.smd-content strong {
+    font-weight: 700;
+    color: var(--navi-text-primary, #E8F5F4);
+}
+
+.smd-content em {
+    font-style: italic;
+    color: var(--navi-text-secondary, #77D5CD);
+}
+
+/* ============================================
+   LISTS - Critical for proper rendering
+   ============================================ */
+.smd-content ul {
+    list-style: disc outside !important;
+    margin: 0.375rem 0 0.75rem 0 !important;
+    padding-left: 1.5rem !important;
+}
+
+.smd-content ol {
+    list-style: decimal outside !important;
+    margin: 0.375rem 0 0.75rem 0 !important;
+    padding-left: 1.5rem !important;
+}
+
+/* Reduce gap when list directly follows a paragraph */
+.smd-content p + ul,
+.smd-content p + ol {
+    margin-top: 0.25rem !important;
+}
+
+.smd-content li {
+    display: list-item !important;
+    margin: 0.5rem 0 !important;
+    line-height: 1.7 !important;
+    padding-left: 0.25rem !important;
+    font-size: 1em !important;
+}
+
+/* Space between consecutive list items */
+.smd-content li + li {
+    margin-top: 0.5rem !important;
+}
+
+/* Definition-style list items: **Term**: Description
+   Common in AI responses like "**What is measured**: The specific..." */
+.smd-content li > strong:first-child,
+.navi-message-bubble li > strong:first-child {
+    color: var(--navi-accent, #4DC8BF) !important;
+    font-weight: 700 !important;
+    display: inline !important;
+}
+
+/* Ensure the colon after bold terms renders correctly */
+.smd-content li > strong:first-child + text {
+    display: inline !important;
+}
+
+/* Nested lists - different markers for visual hierarchy */
+.smd-content ul ul,
+.smd-content ol ul {
+    list-style-type: circle !important;
+    margin: 0.25rem 0 0.5rem 0 !important;
+    padding-left: 1.25rem !important;
+}
+
+.smd-content ul ul ul,
+.smd-content ol ul ul {
+    list-style-type: square !important;
+}
+
+.smd-content ul ol,
+.smd-content ol ol {
+    margin: 0.25rem 0 0.5rem 0 !important;
+    padding-left: 1.25rem !important;
+}
+
+/* Nested list item marker inheritance */
+.smd-content ul ul li,
+.smd-content ol ul li {
+    list-style-type: circle !important;
+}
+
+.smd-content ul ul ul li,
+.smd-content ol ul ul li {
+    list-style-type: square !important;
+}
+
+/* Paragraphs inside list items - inline to avoid extra spacing */
+.smd-content li p {
+    margin: 0 !important;
+    display: inline !important;
+}
+
+.smd-content li > p:first-child {
+    display: inline !important;
+}
+
+/* ============================================
+   BLOCKQUOTES - Key Takeaways (larger text)
+   ============================================ */
+.smd-content blockquote {
+    border-left: 4px solid #7F2940 !important;
+    background: rgba(127, 41, 64, 0.1) !important;
+    margin: 1.25rem 0 !important;
+    padding: 1rem 1.25rem !important;
+    border-radius: 0 8px 8px 0 !important;
+    font-size: 17px !important;
+}
+
+.smd-content blockquote p {
+    margin: 0 !important;
+    color: var(--navi-text-primary, #E8F5F4) !important;
+    font-size: 17px !important;
+    line-height: 1.6 !important;
+}
+
+.smd-content blockquote strong {
+    color: var(--navi-accent, #4DC8BF) !important;
+    font-size: 17px !important;
+}
+
+/* Roadmap suggestion - smaller blockquote after hr at end */
+.smd-content hr + blockquote,
+.smd-content hr + blockquote p,
+.smd-content hr + blockquote strong {
+    font-size: 15px !important;
+}
+
+.smd-content hr + blockquote {
+    position: relative !important;
+    margin-top: 1rem !important;
+    padding: 0.75rem 2.5rem 0.75rem 1rem !important;
+    background: rgba(127, 41, 64, 0.08) !important;
+    border: 1px solid rgba(127, 41, 64, 0.2) !important;
+    border-left: 4px solid #7F2940 !important;
+    border-radius: 0 8px 8px 0 !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+}
+
+/* Open link icon in top right */
+.smd-content hr + blockquote::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 0.625rem !important;
+    right: 0.625rem !important;
+    width: 16px !important;
+    height: 16px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234DC8BF' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25'/%3E%3C/svg%3E") !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    opacity: 0.6 !important;
+    transition: all 0.25s ease !important;
+}
+
+/* Dynamic hover state */
+.smd-content hr + blockquote:hover {
+    background: rgba(77, 200, 191, 0.15) !important;
+    border-color: rgba(77, 200, 191, 0.4) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(77, 200, 191, 0.2) !important;
+}
+
+.smd-content hr + blockquote:hover::after {
+    opacity: 1 !important;
+    transform: translate(1px, -1px) !important;
+}
+
+/* Make the link inside stand out more on hover */
+.smd-content hr + blockquote:hover a {
+    color: var(--navi-accent-light, #A8E6E1) !important;
+}
+
+/* ============================================
+   HORIZONTAL RULES - Section dividers
+   ============================================ */
+.smd-content hr {
+    border: none !important;
+    border-top: 1px solid var(--navi-border-light, rgba(41, 113, 112, 0.5)) !important;
+    margin: 1.5rem 0 !important;
+}
+
+/* ============================================
+   CODE - Inline and Block
+   ============================================ */
+/* Inline code (not inside pre blocks) */
+.smd-content code:not(pre code) {
+    font-family: var(--navi-font-mono, "JetBrains Mono", "Fira Code", monospace) !important;
+    font-size: 0.875em !important;
+    background: rgba(77, 200, 191, 0.15) !important;
+    color: var(--navi-accent-light, #A8E6E1) !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: 4px !important;
+}
+
+/* Code blocks */
+.smd-content pre {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.smd-content pre code {
+    font-family: var(--navi-font-mono, "JetBrains Mono", "Fira Code", monospace);
+    background: none !important;
+    padding: 0 !important;
+    font-size: 14px;
+    color: var(--navi-text-primary, #E8F5F4);
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+.smd-content table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 1rem 0 !important;
+    font-size: 14px !important;
+}
+
+.smd-content th,
+.smd-content td {
+    border: 1px solid var(--navi-border, rgba(41, 113, 112, 0.3)) !important;
+    padding: 0.5rem 0.75rem !important;
+    text-align: left !important;
+}
+
+.smd-content th {
+    background: rgba(77, 200, 191, 0.2) !important;
+    font-weight: 600 !important;
+    color: var(--navi-text-primary, #E8F5F4) !important;
+}
+
+.smd-content tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ============================================
+   LINKS - Exclude citation links
+   ============================================ */
+.smd-content a:not(.citation-link) {
+    color: var(--navi-accent, #4DC8BF) !important;
+    text-decoration: underline !important;
+    text-decoration-style: dotted !important;
+    text-underline-offset: 2px !important;
+    transition: all 0.15s ease !important;
+}
+
+.smd-content a:not(.citation-link):hover {
+    color: var(--navi-accent-hover, #5AC1BA) !important;
+    text-decoration-style: solid !important;
+}
+
+/* ============================================
+   CITATIONS - Superscript [+] or [1]
+   For [+] or [Source: ...] patterns
+   ============================================ */
+.smd-content sup,
+.smd-content sup a,
+.smd-content .citation-link,
+.navi-message-bubble sup {
+    font-size: 0.7em !important;
+    font-weight: 600 !important;
+    color: var(--navi-accent, #4DC8BF) !important;
+    vertical-align: super !important;
+    line-height: 0 !important;
+    cursor: pointer !important;
+    padding: 0 0.125rem !important;
+    transition: all 0.15s ease !important;
+}
+
+.smd-content sup:hover,
+.smd-content sup a:hover,
+.smd-content .citation-link:hover,
+.navi-message-bubble sup:hover {
+    color: var(--navi-text-dark, #163C38) !important;
+    background: var(--navi-accent, #4DC8BF) !important;
+    border-radius: 3px !important;
+    padding: 0.125rem 0.25rem !important;
+}
+
+/* Citation groups - grouped references like [1,2,3] */
+.smd-content .citation-group {
+    display: inline;
+    white-space: nowrap;
+}
+
+/* Citation link underline removal when inside sup */
+.smd-content sup a {
+    text-decoration: none !important;
+}
+
+/* ============================================
+   STREAMING CURSOR - Shows during generation
+   Supports both class and data attribute methods
+   ============================================ */
+.smd-content.streaming::after,
+.smd-content[data-streaming="true"]::after {
+    content: "▋";
+    animation: smd-blink 1s step-end infinite;
+    color: var(--navi-accent, #4DC8BF);
+    margin-left: 2px;
+}
+
+@keyframes smd-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ============================================
+   EQUATION INLINE (for LaTeX arrows etc.)
+   ============================================ */
+.smd-content equation-inline {
+    font-family: var(--navi-font-mono, monospace);
+    color: var(--navi-accent-muted, #77D5CD);
+    padding: 0 0.25rem;
+}
+
+/* ============================================
+   THEME-SPECIFIC OVERRIDES
+   Ensure proper contrast in all themes
+   ============================================ */
+
+/* Light theme adjustments */
+.navi-container[data-theme="light"] .smd-content strong {
+    color: var(--navi-text-primary, #111111);
+}
+
+.navi-container[data-theme="light"] .smd-content blockquote p {
+    color: var(--navi-text-primary, #111111);
+}
+
+/* Accessible theme adjustments */
+.navi-container[data-theme="accessible"] .smd-content strong {
+    color: var(--navi-text-primary, #FFFFFF);
+}
+
+.navi-container[data-theme="accessible"] .smd-content blockquote {
+    border-left-color: var(--navi-accent, #FFECB3);
+    background: rgba(255, 236, 179, 0.1);
+}

@@ -1,0 +1,246 @@
+/* ============================================
+   STREAMING-MARKDOWN IMPROVEMENTS FOR NAVI
+   ============================================
+
+   STATUS: MERGED - January 2026
+
+   These improvements have been consolidated into:
+   - /components/templates/navi/ResponseContent.css (source of truth)
+   - /components/templates/navi/response-stream.css (production mirror)
+
+   This file is kept for reference only.
+   ============================================
+
+   Original description:
+   These styles complement your existing .smd-content rules
+   and fix common formatting issues with AI chat responses.
+*/
+
+/* ===========================================
+   1. DEFINITION-STYLE LISTS (Bold term: description)
+   Common in AI responses like "**What is measured**: The specific..."
+   =========================================== */
+
+.smd-content li > strong:first-child,
+.navi-message-bubble li > strong:first-child {
+    color: var(--navi-accent) !important;
+    font-weight: 700 !important;
+    display: inline !important;
+}
+
+/* Ensure the colon after bold terms doesn't break */
+.smd-content li > strong:first-child + text,
+.smd-content li {
+    display: list-item !important;
+}
+
+/* ===========================================
+   2. NESTED LISTS (proper indentation)
+   =========================================== */
+
+.smd-content ul ul,
+.smd-content ol ul,
+.smd-content ul ol,
+.smd-content ol ol {
+    margin: 0.25rem 0 0.5rem 0 !important;
+    padding-left: 1.25rem !important;
+}
+
+.smd-content ul ul li,
+.smd-content ol ul li {
+    list-style-type: circle !important;
+}
+
+.smd-content ul ul ul li,
+.smd-content ol ul ul li {
+    list-style-type: square !important;
+}
+
+/* ===========================================
+   3. CITATION LINKS (superscript style)
+   For [+] or [Source: ...] patterns
+   =========================================== */
+
+.smd-content .citation-link,
+.smd-content sup,
+.smd-content sup a,
+.navi-message-bubble sup {
+    font-size: 0.75em !important;
+    font-weight: 600 !important;
+    color: var(--navi-accent) !important;
+    vertical-align: super !important;
+    line-height: 0 !important;
+    cursor: pointer !important;
+    padding: 0 0.125rem !important;
+    transition: all 0.15s ease !important;
+}
+
+.smd-content .citation-link:hover,
+.smd-content sup:hover,
+.navi-message-bubble sup:hover {
+    color: var(--navi-text-dark) !important;
+    background: var(--navi-accent) !important;
+    border-radius: 3px !important;
+    padding: 0.125rem 0.25rem !important;
+}
+
+/* ===========================================
+   4. PARAGRAPH SPACING (tighter in lists)
+   =========================================== */
+
+.smd-content li p {
+    margin: 0 !important;
+    display: inline !important;
+}
+
+.smd-content li > p:first-child {
+    display: inline !important;
+}
+
+/* Space between list items */
+.smd-content li + li {
+    margin-top: 0.5rem !important;
+}
+
+/* ===========================================
+   5. HEADERS IN RESPONSES
+   =========================================== */
+
+.smd-content h1,
+.smd-content h2,
+.smd-content h3,
+.smd-content h4 {
+    color: var(--navi-accent) !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+/* H4 used for subsections like "#### Elements of a Comprehensive COU" */
+.smd-content h4 {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    margin: 1.25rem 0 0.5rem !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+/* ===========================================
+   6. INLINE CODE (for technical terms)
+   =========================================== */
+
+.smd-content code:not(pre code) {
+    background: rgba(77, 200, 191, 0.15) !important;
+    color: var(--navi-accent-light) !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: 4px !important;
+    font-size: 0.875em !important;
+    font-family: var(--navi-font-mono, monospace) !important;
+}
+
+/* ===========================================
+   7. BLOCKQUOTES (for important callouts)
+   =========================================== */
+
+.smd-content blockquote {
+    border-left: 3px solid var(--navi-accent) !important;
+    background: rgba(77, 200, 191, 0.08) !important;
+    margin: 1rem 0 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0 6px 6px 0 !important;
+}
+
+.smd-content blockquote p {
+    margin: 0 !important;
+    font-style: italic !important;
+    color: var(--navi-text-secondary) !important;
+}
+
+/* ===========================================
+   8. TABLES (if AI returns tabular data)
+   =========================================== */
+
+.smd-content table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 1rem 0 !important;
+    font-size: 0.875rem !important;
+}
+
+.smd-content th,
+.smd-content td {
+    border: 1px solid var(--navi-border) !important;
+    padding: 0.5rem 0.75rem !important;
+    text-align: left !important;
+}
+
+.smd-content th {
+    background: rgba(77, 200, 191, 0.15) !important;
+    font-weight: 600 !important;
+    color: var(--navi-text-primary) !important;
+}
+
+.smd-content tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ===========================================
+   9. HORIZONTAL RULES (section dividers)
+   =========================================== */
+
+.smd-content hr {
+    border: none !important;
+    border-top: 1px solid var(--navi-border-light) !important;
+    margin: 1.5rem 0 !important;
+}
+
+/* ===========================================
+   10. FIX: Ensure list markers show correctly
+   =========================================== */
+
+.smd-content ul {
+    list-style: disc outside !important;
+    padding-left: 1.5rem !important;
+}
+
+.smd-content ol {
+    list-style: decimal outside !important;
+    padding-left: 1.5rem !important;
+}
+
+.smd-content li {
+    display: list-item !important;
+    padding-left: 0.25rem !important;
+}
+
+/* ===========================================
+   11. STREAMING STATE (while typing)
+   =========================================== */
+
+.smd-content[data-streaming="true"]::after,
+.smd-content.streaming::after {
+    content: "▋";
+    animation: blink 1s step-end infinite;
+    color: var(--navi-accent);
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ===========================================
+   12. LINKS IN RESPONSES
+   =========================================== */
+
+.smd-content a:not(.citation-link) {
+    color: var(--navi-accent) !important;
+    text-decoration: underline !important;
+    text-decoration-style: dotted !important;
+    text-underline-offset: 2px !important;
+}
+
+.smd-content a:not(.citation-link):hover {
+    text-decoration-style: solid !important;
+    color: var(--navi-accent-hover) !important;
+}

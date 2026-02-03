@@ -1,0 +1,137 @@
+═══════════════════════════════════════════════════════════════════════════════
+DATA FETCHING SCRIPTS - FILE PATHS FOR HANDOFF
+═══════════════════════════════════════════════════════════════════════════════
+
+PROJECT ROOT
+────────────────────────────────────────────────────────────────────────────────
+Z:\Application Prototypes\dime\dime-navi
+
+
+SCRIPT FILES (All .cjs files)
+────────────────────────────────────────────────────────────────────────────────
+Z:\Application Prototypes\dime\dime-navi\scripts\fetchWordPressContent.cjs
+Z:\Application Prototypes\dime\dime-navi\scripts\fetchFirestoreData.cjs
+Z:\Application Prototypes\dime\dime-navi\scripts\fetchPromptMetrics.cjs
+Z:\Application Prototypes\dime\dime-navi\scripts\compareDatasets.cjs
+Z:\Application Prototypes\dime\dime-navi\scripts\analyzeContentChanges.cjs
+
+
+DOCUMENTATION
+────────────────────────────────────────────────────────────────────────────────
+Z:\Application Prototypes\dime\dime-navi\scripts\README-DATA-SCRIPTS.md
+Z:\Application Prototypes\dime\dime-navi\scripts\HANDOFF-PATHS.txt (this file)
+
+
+OUTPUT DATA DIRECTORIES
+────────────────────────────────────────────────────────────────────────────────
+Z:\Application Prototypes\dime\dime-navi\scripts\wordpress-data\
+Z:\Application Prototypes\dime\dime-navi\scripts\firestore-data\
+Z:\Application Prototypes\dime\dime-navi\scripts\metrics-data\
+
+
+LATEST DATA FILES (2026-02-03)
+────────────────────────────────────────────────────────────────────────────────
+WordPress Data:
+  Z:\Application Prototypes\dime\dime-navi\scripts\wordpress-data\combined_2026-02-03.json
+  Z:\Application Prototypes\dime\dime-navi\scripts\wordpress-data\resources_2026-02-03.json
+  Z:\Application Prototypes\dime\dime-navi\scripts\wordpress-data\pages_2026-02-03.json
+
+Firestore Data:
+  Z:\Application Prototypes\dime\dime-navi\scripts\firestore-data\all-documents_2026-02-03.json
+  Z:\Application Prototypes\dime\dime-navi\scripts\firestore-data\summary_2026-02-03.json
+
+Comparison Reports:
+  Z:\Application Prototypes\dime\dime-navi\scripts\comparison-report.json
+  Z:\Application Prototypes\dime\dime-navi\scripts\content-analysis-report.json
+
+
+NPM COMMANDS
+────────────────────────────────────────────────────────────────────────────────
+npm run fetch:wp              # Fetch WordPress content (no auth)
+npm run fetch:firestore       # Fetch Firestore knowledge base (anonymous auth)
+npm run fetch:metrics:dev     # Fetch prompt_metrics from dev (requires service account)
+npm run fetch:metrics:prod    # Fetch prompt_metrics from prod (requires service account)
+npm run compare:datasets      # Compare WordPress vs Firestore
+npm run analyze:content       # Deep content analysis
+
+
+SERVICE ACCOUNT SETUP (Required for metrics)
+────────────────────────────────────────────────────────────────────────────────
+Location for service account files:
+  Z:\Application Prototypes\dime\dime-navi\service-accounts\dimenotesv2-admin.json
+  Z:\Application Prototypes\dime\dime-navi\service-accounts\navi-production-485916-admin.json
+
+How to get:
+  1. Go to: https://console.firebase.google.com/project/dimenotesv2/settings/serviceaccounts/adminsdk
+  2. Click "Generate New Private Key"
+  3. Save to above location
+
+
+CONFIGURATION FILES
+────────────────────────────────────────────────────────────────────────────────
+Z:\Application Prototypes\dime\dime-navi\.env.local
+Z:\Application Prototypes\dime\dime-navi\.env.client
+Z:\Application Prototypes\dime\dime-navi\firestore.rules
+Z:\Application Prototypes\dime\dime-navi\.gitignore
+Z:\Application Prototypes\dime\dime-navi\package.json
+
+
+PLAN & CONTEXT
+────────────────────────────────────────────────────────────────────────────────
+C:\Users\Totally Team\.claude\plans\stateless-coalescing-quilt.md
+
+
+KEY FINDINGS SUMMARY
+────────────────────────────────────────────────────────────────────────────────
+WordPress (Live):  317 items (245 resources + 72 pages)
+Firestore (Jan 16): 313 items (242 library + 71 roadmap)
+Difference:        +4 items (10 new, 6 deleted, 62 updated)
+
+Content Analysis:
+  - 55 items with MAJOR changes (>30% content rewrite)
+  - 3 title changes
+  - Systematic quality improvement across "Regulatory spotlight" pages
+  - Better attribution and standardized formatting
+
+Recommendation: Sync highly recommended to get quality improvements
+
+
+AUTHENTICATION METHODS
+────────────────────────────────────────────────────────────────────────────────
+WordPress:           No auth (public REST API)
+Firestore KB:        Anonymous auth (client SDK)
+Firestore Metrics:   Admin SDK with service account (bypasses rules)
+
+
+FIRESTORE SECURITY RULES RELEVANT
+────────────────────────────────────────────────────────────────────────────────
+knowledgebase_wp:    allow read: if isAuthenticated()  ✅ Anonymous works
+knowledgebase_config: allow read: if isAuthenticated()  ✅ Anonymous works
+prompt_metrics:      allow read: if false              ❌ Must use Admin SDK
+
+
+TROUBLESHOOTING
+────────────────────────────────────────────────────────────────────────────────
+Issue: "Permission denied" on prompt_metrics
+Solution: Use fetchPromptMetrics.cjs with Admin SDK + service account
+
+Issue: "Service account not found"
+Solution: Download from Firebase Console (see SERVICE ACCOUNT SETUP above)
+
+Issue: "Module not found: firebase-admin"
+Solution: Already installed via @genkit-ai/firebase dependency
+
+
+NEXT STEPS
+────────────────────────────────────────────────────────────────────────────────
+1. Review comparison-report.json and content-analysis-report.json
+2. Run fetch:metrics:dev to get prompt metrics data
+3. Create Phase 2 import script to sync WordPress → Firestore
+4. Test in dev environment before production
+
+
+═══════════════════════════════════════════════════════════════════════════════
+END OF HANDOFF DOCUMENT
+Created: 2026-02-03
+Status: Ready for handoff to another Claude Code chat
+═══════════════════════════════════════════════════════════════════════════════

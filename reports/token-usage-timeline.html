@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Usage Timeline - DiMeNotes NaVi</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 2rem;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+      background: #f8f9fa;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #212529;
+    }
+
+    .stat-subtitle {
+      font-size: 0.875rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
+    }
+
+    .chart-section {
+      padding: 2rem;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 500px;
+      margin-bottom: 3rem;
+    }
+
+    .milestones {
+      padding: 0 2rem 2rem 2rem;
+    }
+
+    .milestones h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #212529;
+    }
+
+    .milestone-card {
+      background: #e7f3ff;
+      border-left: 4px solid #0066cc;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+    }
+
+    .milestone-date {
+      font-weight: 700;
+      color: #0066cc;
+      margin-bottom: 0.25rem;
+    }
+
+    .milestone-text {
+      color: #495057;
+    }
+
+    .note {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 1rem;
+      margin: 2rem;
+      border-radius: 4px;
+      color: #856404;
+    }
+
+    .footer {
+      padding: 1.5rem 2rem;
+      background: #f8f9fa;
+      text-align: center;
+      color: #6c757d;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Token Usage Timeline</h1>
+      <p>DiMeNotes NaVi - Historical Analysis (100 requests)</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Tokens</div>
+        <div class="stat-value">2,081,375</div>
+        <div class="stat-subtitle">Across all requests</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Average Input</div>
+        <div class="stat-value">17,586</div>
+        <div class="stat-subtitle">Tokens per request</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Peak Usage</div>
+        <div class="stat-value">87,597</div>
+        <div class="stat-subtitle">Highest single request</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Optimized Low</div>
+        <div class="stat-value">9,904</div>
+        <div class="stat-subtitle">After optimization</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Peak Volume</div>
+        <div class="stat-value">2</div>
+        <div class="stat-subtitle">Prompts per day (max)</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Avg Daily Volume</div>
+        <div class="stat-value">1.7</div>
+        <div class="stat-subtitle">Prompts per day</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>📅 Timeline Note:</strong> Actual request timestamps are not available in the AI Studio export.
+      This timeline assumes the 100 records are in chronological order (earliest to most recent)
+      and distributes them evenly over an estimated 60-day period ending on the export date.
+    </div>
+
+    <div class="chart-section">
+      <h2 style="margin-bottom: 1.5rem; color: #212529;">Token Usage Over Time</h2>
+      <div class="chart-container">
+        <canvas id="timelineChart"></canvas>
+      </div>
+    </div>
+
+    
+    <div class="milestones">
+      <h2>🎯 Optimization Milestones</h2>
+      
+        <div class="milestone-card">
+          <div class="milestone-date">Dec 16</div>
+          <div class="milestone-text">
+            Reduced average token usage by <strong>22,774</strong> tokens
+            (from 52,967 to 30,193)
+          </div>
+        </div>
+      
+        <div class="milestone-card">
+          <div class="milestone-date">Dec 22</div>
+          <div class="milestone-text">
+            Reduced average token usage by <strong>14,995</strong> tokens
+            (from 30,193 to 15,199)
+          </div>
+        </div>
+      
+        <div class="milestone-card">
+          <div class="milestone-date">Jan 21</div>
+          <div class="milestone-text">
+            Reduced average token usage by <strong>9,065</strong> tokens
+            (from 24,671 to 15,605)
+          </div>
+        </div>
+      
+    </div>
+    
+
+    <div class="footer">
+      Generated 03/02/2026, 01:33:31 | DiMeNotes NaVi Token Analysis
+    </div>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('timelineChart').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ["Dec 4","Dec 4","Dec 5","Dec 5","Dec 6","Dec 7","Dec 7","Dec 8","Dec 8","Dec 9","Dec 10","Dec 10","Dec 11","Dec 11","Dec 12","Dec 13","Dec 13","Dec 14","Dec 14","Dec 15","Dec 16","Dec 16","Dec 17","Dec 17","Dec 18","Dec 19","Dec 19","Dec 20","Dec 20","Dec 21","Dec 22","Dec 22","Dec 23","Dec 23","Dec 24","Dec 25","Dec 25","Dec 26","Dec 26","Dec 27","Dec 28","Dec 28","Dec 29","Dec 29","Dec 30","Dec 31","Dec 31","Jan 1","Jan 1","Jan 2","Jan 3","Jan 3","Jan 4","Jan 4","Jan 5","Jan 6","Jan 6","Jan 7","Jan 7","Jan 8","Jan 9","Jan 9","Jan 10","Jan 10","Jan 11","Jan 12","Jan 12","Jan 13","Jan 13","Jan 14","Jan 15","Jan 15","Jan 16","Jan 16","Jan 17","Jan 18","Jan 18","Jan 19","Jan 19","Jan 20","Jan 21","Jan 21","Jan 22","Jan 22","Jan 23","Jan 24","Jan 24","Jan 25","Jan 25","Jan 26","Jan 27","Jan 27","Jan 28","Jan 28","Jan 29","Jan 30","Jan 30","Jan 31","Jan 31","Feb 1"],
+        datasets: [
+          {
+            label: 'Volume (Prompts/Day)',
+            type: 'bar',
+            data: [2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,2,1],
+            backgroundColor: 'rgba(52, 211, 153, 0.3)',
+            borderColor: 'rgba(52, 211, 153, 0.8)',
+            borderWidth: 1,
+            yAxisID: 'y1',
+            order: 2
+          },
+          {
+            label: 'Total Tokens',
+            data: [57589,39847,40135,40605,0,40900,49113,40459,41092,41640,87597,46363,41831,79736,42333,39887,56833,39088,60464,35539,37626,54188,47082,45347,11037,11964,35327,34428,13333,11601,14436,13817,23769,12719,13812,15395,22566,11469,12454,11548,12594,11352,11203,11730,10731,13146,13316,11775,12661,13061,11808,11482,10743,11694,11889,12315,13895,23151,14254,12353,11132,12489,11864,12646,13237,12310,14275,13195,11892,13594,11728,12356,12673,25051,84922,23096,13312,27709,11843,24017,12336,11214,13063,12058,24129,31520,14157,11936,13737,11903,12388,13793,13162,16550,11898,11933,10861,9904,10132,9953],
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 6,
+            yAxisID: 'y',
+            order: 1
+          },
+          {
+            label: 'Input Tokens',
+            data: [52519,35781,36060,35781,0,36656,40990,35781,40924,36656,83371,40676,36506,74863,36657,35781,52519,35781,56563,31990,33680,47931,40990,40990,8499,7959,30440,30440,8499,7959,7745,7959,19049,7845,9624,9498,18272,7857,8910,8397,8124,7857,8397,7857,7857,7857,8124,7857,8397,8124,8499,7857,7857,8620,7857,7857,7857,18315,7857,8124,7857,8397,7857,8622,8397,8622,8397,8910,7857,8124,7857,8499,8124,18947,19347,9010,9010,18293,7857,18484,8124,7857,8124,8124,18484,18181,8397,8397,8124,8124,8124,8397,8124,7857,7869,8511,8136,7209,6967,7416],
+            borderColor: '#f093fb',
+            backgroundColor: 'rgba(240, 147, 251, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 6,
+            yAxisID: 'y',
+            order: 1
+          },
+          {
+            label: 'Output Tokens',
+            data: [3164,2541,2667,3034,0,2977,3276,2585,77,3247,3114,3970,3774,2652,3074,2844,2410,2378,2179,2737,2122,2075,3354,3277,1713,1947,2297,2587,2336,2290,3613,3073,2812,3497,2832,3440,3120,2028,2450,2134,2704,2146,1742,2744,1865,3019,3359,2800,2051,3023,2427,2617,1911,1358,3001,3657,2081,2414,2181,2352,2063,2429,2827,2747,2134,2754,2132,3023,2720,2153,1922,2379,3008,3107,64349,12498,2596,1956,2983,3327,2830,1873,2650,2094,3632,2470,2443,1987,2579,2296,2644,2061,1996,2545,2153,2072,1447,1313,1763,1708],
+            borderColor: '#4facfe',
+            backgroundColor: 'rgba(79, 172, 254, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 6,
+            yAxisID: 'y',
+            order: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 15,
+              font: {
+                size: 13,
+                weight: '600'
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: {
+              size: 14,
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 13
+            },
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' tokens';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Date (Estimated)',
+              font: {
+                size: 14,
+                weight: 'bold'
+              }
+            },
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45,
+              autoSkip: true,
+              maxTicksLimit: 20
+            },
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Tokens',
+              font: {
+                size: 14,
+                weight: 'bold'
+              }
+            },
+            ticks: {
+              callback: function(value) {
+                return value.toLocaleString();
+              }
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          },
+          y1: {
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Prompts per Day',
+              font: {
+                size: 14,
+                weight: 'bold'
+              },
+              color: 'rgba(52, 211, 153, 1)'
+            },
+            ticks: {
+              callback: function(value) {
+                return value;
+              },
+              color: 'rgba(52, 211, 153, 1)'
+            },
+            grid: {
+              drawOnChartArea: false
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
