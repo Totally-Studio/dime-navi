@@ -946,7 +946,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 </div>
               )}
               {isLoading && !streamingContent && (
-                <ThinkingState query={lastUserMessage?.content} />
+                <ThinkingState query={lastUserMessage?.content} progressSteps={reasoningSteps} />
               )}
 
               <div ref={messagesEndRef} />

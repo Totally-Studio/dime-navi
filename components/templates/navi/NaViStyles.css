@@ -1693,14 +1693,14 @@ p.navi-section-snippet.state-active {
 
 .navi-message-avatar {
   background: var(--navi-card-bg);
-  border: 1px solid var(--navi-border-light);
+  border: 2px solid #d97706;
   padding: 0.75rem 1rem;
   border-radius: 6px;
 }
 
 .navi-message-avatar span {
-  font-size: clamp(15px, 2.5cqw, 18px);
-  font-weight: 600;
+  font-size: clamp(16px, 3cqw, 20px);
+  font-weight: 700;
   color: var(--navi-text-primary);
   white-space: nowrap;
 }
