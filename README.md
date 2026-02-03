@@ -8,6 +8,15 @@ This is the **NaVi Widget** project - a decoupled, production-ready widget that 
 
 **Important:** The DiMe Notes main application has been archived to `/archive/main-app/`. This repository now contains only the widget code.
 
+## Branching Strategy
+
+This repository uses **two branches** to maintain separate dev and production environments:
+
+- **`main`** - Production (navi-production-485916) - Stable code for live users
+- **`develop`** - Development (dimenotesv2) - Active development and testing
+
+See [BRANCHING.md](./BRANCHING.md) for detailed workflow, deployment, and branch management.
+
 ## Quick Start
 
 ### Development (dimenotesv2)
