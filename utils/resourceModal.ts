@@ -106,9 +106,13 @@ class ModalCleanupManager {
       while (mainContainer.firstChild) {
         mainContainer.removeChild(mainContainer.firstChild);
       }
+      // Clear ALL inline styles (WordPress uses inline styles for the backdrop!)
+      mainContainer.removeAttribute('style');
+      // Remove the 'show' class if present
+      mainContainer.classList.remove('show');
       // Hide the container
       mainContainer.style.display = 'none';
-      console.log('🗑️ Cleared main container contents (kept container for reuse)');
+      console.log('🗑️ Cleared main container contents and styles (kept container for reuse)');
       removedCount++;
     }
 
