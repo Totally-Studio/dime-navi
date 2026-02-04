@@ -202,6 +202,36 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     };
   }, [showReferences]);
 
+  // Close reference panel when clicking outside (overlay or anywhere on page)
+  useEffect(() => {
+    if (!showReferences) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      // Close if clicking on overlay (outside the panel content)
+      if (target.classList.contains('navi-references-panel-overlay')) {
+        console.log('🔄 Closing reference panel (clicked outside)');
+        setShowReferences(false);
+        return;
+      }
+
+      // Close if clicking completely outside widget (e.g., on modal backdrop)
+      const widgetContainer = document.querySelector('.dime-navi-widget-root');
+      if (widgetContainer && !widgetContainer.contains(target)) {
+        console.log('🔄 Closing reference panel (clicked outside widget)');
+        setShowReferences(false);
+      }
+    };
+
+    // Use capture phase to catch clicks before they bubble
+    document.addEventListener('click', handleClickOutside, true);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside, true);
+    };
+  }, [showReferences]);
+
   const handleCopy = () => {
     const content = streamingContent || messages.filter(m => m.role === 'assistant').pop()?.content || '';
     navigator.clipboard.writeText(content);

@@ -1,9 +1,9 @@
 import { Template } from './types';
 
 // ==================== WIDGET VERSION ====================
-export const WIDGET_VERSION = '2026.02.04.5'; // Format: YYYY.MM.DD.BUILD
-// Previous: 2026.02.04.4 (auto-close reference panel - event after modal)
-// Current: 2026.02.04.5 (auto-close reference panel - event BEFORE modal with 50ms delay)
+export const WIDGET_VERSION = '2026.02.04.6'; // Format: YYYY.MM.DD.BUILD
+// Previous: 2026.02.04.5 (auto-close reference panel - event BEFORE modal with 50ms delay)
+// Current: 2026.02.04.6 (click-outside-to-close for reference panel)
 
 // ==================== DEFAULT RESPONSE TEMPLATE ====================
 // Change this to switch the default template used by NaVi and all widgets.
