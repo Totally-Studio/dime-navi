@@ -22,48 +22,35 @@ class ModalCleanupManager {
 
   /**
    * Find ALL backdrop elements using multiple detection strategies
-   * ONLY detects orphaned backdrops, not active modal containers
+   * This runs AFTER modal close, so be aggressive
    */
   detectBackdropElements(): HTMLElement[] {
     const backdrops: HTMLElement[] = [];
 
-    // Helper: Check if element is an active modal (has visible content)
-    const isActiveModal = (el: HTMLElement): boolean => {
-      // If element has children that are visible, it's likely an active modal
-      const hasVisibleContent = el.children.length > 0 &&
-        Array.from(el.children).some(child => {
-          if (child instanceof HTMLElement) {
-            const style = getComputedStyle(child);
-            return style.display !== 'none' && style.visibility !== 'hidden';
-          }
-          return false;
-        });
-      return hasVisibleContent;
-    };
-
-    // Strategy 1: Search by ID patterns (but exclude active modals)
-    const idPatterns = ['backdrop', 'overlay', 'dimmer'];
+    // Strategy 1: Search by ID patterns for backdrop-like elements
+    const idPatterns = ['backdrop', 'overlay', 'dimmer', 'modal-bg'];
     idPatterns.forEach(pattern => {
       const elements = document.querySelectorAll(`[id*="${pattern}"]`);
       elements.forEach(el => {
         if (el instanceof HTMLElement && !backdrops.includes(el)) {
-          // Exclude NaVi's own elements and active modals
-          if (!el.id.startsWith('navi-') && !isActiveModal(el)) {
+          // Exclude only NaVi's own UI elements (not the WordPress container)
+          if (!el.id.startsWith('navi-') || el.id === 'navi-dynamic-modal-container') {
             backdrops.push(el);
           }
         }
       });
     });
 
-    // Strategy 2: Search by class patterns (but exclude active modals)
-    const classPatterns = ['backdrop', 'overlay', 'dimmer'];
+    // Strategy 2: Search by class patterns
+    const classPatterns = ['backdrop', 'overlay', 'dimmer', 'modal-bg'];
     classPatterns.forEach(pattern => {
       const elements = document.querySelectorAll(`[class*="${pattern}"]`);
       elements.forEach(el => {
         if (el instanceof HTMLElement && !backdrops.includes(el)) {
-          // Exclude NaVi's own elements and active modals
           const classes = el.className.toString();
-          if (!classes.includes('navi-') && !isActiveModal(el)) {
+          // Exclude NaVi's mobile backdrop and references panel
+          if (!classes.includes('navi-mobile-backdrop') &&
+              !classes.includes('navi-references-panel-overlay')) {
             backdrops.push(el);
           }
         }
@@ -71,12 +58,15 @@ class ModalCleanupManager {
     });
 
     // Strategy 3: Detect by computed styles (semi-transparent dark backgrounds)
-    // This catches orphaned backdrops that don't have identifying classes
-    const potentialBackdrops = document.querySelectorAll('div');
+    const potentialBackdrops = document.querySelectorAll('div[style*="position: fixed"], div[style*="position:fixed"]');
     potentialBackdrops.forEach(el => {
       if (el instanceof HTMLElement && !backdrops.includes(el)) {
-        // Skip if it's a NaVi element or has visible content
-        if (el.id.startsWith('navi-') || el.className.toString().includes('navi-')) {
+        // Skip NaVi elements
+        if (el.id.startsWith('navi-') && el.id !== 'navi-dynamic-modal-container') {
+          return;
+        }
+        if (el.className.toString().includes('navi-mobile-backdrop') ||
+            el.className.toString().includes('navi-references-panel-overlay')) {
           return;
         }
 
@@ -85,16 +75,12 @@ class ModalCleanupManager {
 
         // Check for dark semi-transparent backgrounds
         if (bg.includes('rgba') && (bg.includes('0, 0, 0') || bg.includes('0,0,0'))) {
-          // Extract opacity from rgba
           const match = bg.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
           if (match) {
             const opacity = parseFloat(match[4]);
-            // If it's a dark semi-transparent overlay AND it's empty or nearly empty
-            if (opacity > 0.3 && opacity < 0.9 && styles.position === 'fixed') {
-              // Only treat as backdrop if it has no visible content
-              if (!isActiveModal(el)) {
-                backdrops.push(el);
-              }
+            // Dark semi-transparent overlay
+            if (opacity > 0.3 && opacity < 0.9) {
+              backdrops.push(el);
             }
           }
         }
@@ -107,13 +93,25 @@ class ModalCleanupManager {
 
   /**
    * Remove all detected backdrop elements and restore document state
+   * When this is called, the modal is already closed, so be aggressive
    */
   removeAllBackdrops(): void {
-    const backdrops = this.detectBackdropElements();
+    let removedCount = 0;
 
+    // Strategy 1: Remove the main WordPress modal container by ID (primary target)
+    const mainContainer = document.getElementById('navi-dynamic-modal-container');
+    if (mainContainer) {
+      console.log('🗑️ Removing main container:', mainContainer.id);
+      mainContainer.remove();
+      removedCount++;
+    }
+
+    // Strategy 2: Remove any other detected backdrops
+    const backdrops = this.detectBackdropElements();
     backdrops.forEach(backdrop => {
       console.log('🗑️ Removing backdrop:', backdrop.id || backdrop.className || backdrop.tagName);
       backdrop.remove();
+      removedCount++;
     });
 
     // Remove body/html overflow locks
@@ -124,8 +122,8 @@ class ModalCleanupManager {
     document.body.classList.remove('modal-open', 'no-scroll');
     document.documentElement.classList.remove('modal-open', 'no-scroll');
 
-    if (backdrops.length > 0) {
-      console.log(`✅ Removed ${backdrops.length} backdrop element(s)`);
+    if (removedCount > 0) {
+      console.log(`✅ Removed ${removedCount} backdrop element(s)`);
     }
   }
 
