@@ -202,7 +202,7 @@ class ModalCleanupManager {
 
   /**
    * Register close handlers for modal cleanup
-   * Handles: Escape key, backdrop clicks
+   * Handles: Escape key, X button clicks, backdrop clicks
    */
   registerCloseHandlers(): void {
     if (this.closeHandlersRegistered) {
@@ -222,8 +222,27 @@ class ModalCleanupManager {
     };
 
     document.addEventListener('keydown', this.escapeHandler);
+
+    // X button click handler - add listener to container for clicks on close icon
+    // Use setTimeout to wait for modal content to be injected
+    setTimeout(() => {
+      const closeIcons = document.querySelectorAll('.close-icon');
+      closeIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+          console.log('❌ Close icon clicked, triggering cleanup...');
+          setTimeout(() => {
+            cleanupWordPressModalBackdrop();
+            this.cleanupHandlers();
+          }, 300);
+        });
+      });
+      if (closeIcons.length > 0) {
+        console.log(`✅ Added close icon listeners to ${closeIcons.length} icon(s)`);
+      }
+    }, 200);
+
     this.closeHandlersRegistered = true;
-    console.log('✅ Close handlers registered (Escape key)');
+    console.log('✅ Close handlers registered (Escape key + X button)');
   }
 
   /**
