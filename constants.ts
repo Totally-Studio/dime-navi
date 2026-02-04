@@ -1,9 +1,9 @@
 import { Template } from './types';
 
 // ==================== WIDGET VERSION ====================
-export const WIDGET_VERSION = '2026.02.03.1'; // Format: YYYY.MM.DD.BUILD
-// Previous: 2026.01.29.11 (removed RTL direction to fix ? character bug)
-// Current: 2026.02.03.1 (token tracking, reasoning component, performance optimizations)
+export const WIDGET_VERSION = '2026.02.04.1'; // Format: YYYY.MM.DD.BUILD
+// Previous: 2026.02.03.3 (initial WordPress modal backdrop fix)
+// Current: 2026.02.04.1 (enhanced robust modal backdrop cleanup with pattern detection and CSS defensive layer)
 
 // ==================== DEFAULT RESPONSE TEMPLATE ====================
 // Change this to switch the default template used by NaVi and all widgets.

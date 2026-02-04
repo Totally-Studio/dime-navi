@@ -4718,9 +4718,26 @@ a.navi-sources-link {
 
 /* Title padding to avoid delete button */
 .navi-conversation-title {
-  padding-right: 2.5rem; /* Space for time/delete on right */
+  padding-right: 0.5rem; /* Small buffer for visual spacing */
 }
 
 .navi-resource-card.compact .navi-resource-title {
   padding-left: 1.75rem; /* Space for delete on left */
+}
+
+/* ==================== MODAL BACKDROP CLEANUP - DEFENSIVE LAYER ==================== */
+
+/*
+ * NOTE: This CSS is a last-resort cleanup layer only.
+ * It should NOT prevent modals from opening - only clean up orphaned backdrops.
+ * Primary cleanup is handled by JavaScript in utils/resourceModal.ts
+ */
+
+/* Remove body scroll locks when no modal is visible */
+body:not(:has([class*="modal"][style*="display: block"])):not(:has([class*="modal"][style*="display:block"])) {
+  overflow: visible !important;
+}
+
+html:not(:has([class*="modal"][style*="display: block"])):not(:has([class*="modal"][style*="display:block"])) {
+  overflow: visible !important;
 }
