@@ -202,24 +202,19 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     };
   }, [showReferences]);
 
-  // Close reference panel when clicking outside (overlay or anywhere on page)
+  // Close reference panel when clicking outside the panel content
   useEffect(() => {
     if (!showReferences) return;
 
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
-      // Close if clicking on overlay (outside the panel content)
-      if (target.classList.contains('navi-references-panel-overlay')) {
-        console.log('🔄 Closing reference panel (clicked outside)');
-        setShowReferences(false);
-        return;
-      }
+      // Find the actual panel content (not the overlay)
+      const panelContent = document.querySelector('.navi-references-panel');
 
-      // Close if clicking completely outside widget (e.g., on modal backdrop)
-      const widgetContainer = document.querySelector('.dime-navi-widget-root');
-      if (widgetContainer && !widgetContainer.contains(target)) {
-        console.log('🔄 Closing reference panel (clicked outside widget)');
+      // If panel exists and click is NOT inside it, close
+      if (panelContent && !panelContent.contains(target)) {
+        console.log('🔄 Closing reference panel (clicked outside panel)');
         setShowReferences(false);
       }
     };
