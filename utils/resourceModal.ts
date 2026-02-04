@@ -348,13 +348,16 @@ export const openResourceInModal = async (
     // Check if WordPress modal API exists and we have a valid post ID
     if (postId && window.DimeResourceModal) {
       try {
+        // Dispatch event BEFORE opening modal to close reference panel first (prevents overlay)
+        window.dispatchEvent(new CustomEvent('wordpress-modal-opened'));
+
+        // Small delay to ensure React has time to close panel before modal opens
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         console.log(`Opening library resource ${resource.id} (post ID: ${postId}) in modal...`);
         const success = await window.DimeResourceModal.open(postId);
         if (success) {
           console.log(`✓ Modal opened successfully for ${resource.title}`);
-
-          // Dispatch custom event to notify components that modal opened (prevents reference panel overlay)
-          window.dispatchEvent(new CustomEvent('wordpress-modal-opened'));
 
           // Use cleanup manager for robust backdrop handling
           const manager = ModalCleanupManager.getInstance();
