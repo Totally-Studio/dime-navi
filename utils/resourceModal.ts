@@ -94,24 +94,33 @@ class ModalCleanupManager {
   /**
    * Remove all detected backdrop elements and restore document state
    * When this is called, the modal is already closed, so be aggressive
+   * IMPORTANT: Clear the container but DON'T remove it - WordPress needs it for future modals
    */
   removeAllBackdrops(): void {
     let removedCount = 0;
 
-    // Strategy 1: Remove the main WordPress modal container by ID (primary target)
+    // Strategy 1: Clear the main WordPress modal container contents (but keep the container!)
     const mainContainer = document.getElementById('navi-dynamic-modal-container');
     if (mainContainer) {
-      console.log('🗑️ Removing main container:', mainContainer.id);
-      mainContainer.remove();
+      // Remove all children (modal content + backdrop) but keep the container itself
+      while (mainContainer.firstChild) {
+        mainContainer.removeChild(mainContainer.firstChild);
+      }
+      // Hide the container
+      mainContainer.style.display = 'none';
+      console.log('🗑️ Cleared main container contents (kept container for reuse)');
       removedCount++;
     }
 
-    // Strategy 2: Remove any other detected backdrops
+    // Strategy 2: Remove any other detected backdrops (outside the main container)
     const backdrops = this.detectBackdropElements();
     backdrops.forEach(backdrop => {
-      console.log('🗑️ Removing backdrop:', backdrop.id || backdrop.className || backdrop.tagName);
-      backdrop.remove();
-      removedCount++;
+      // Don't remove the main container itself (we already handled it)
+      if (backdrop.id !== 'navi-dynamic-modal-container') {
+        console.log('🗑️ Removing backdrop:', backdrop.id || backdrop.className || backdrop.tagName);
+        backdrop.remove();
+        removedCount++;
+      }
     });
 
     // Remove body/html overflow locks
@@ -123,7 +132,7 @@ class ModalCleanupManager {
     document.documentElement.classList.remove('modal-open', 'no-scroll');
 
     if (removedCount > 0) {
-      console.log(`✅ Removed ${removedCount} backdrop element(s)`);
+      console.log(`✅ Cleaned up ${removedCount} backdrop element(s)`);
     }
   }
 
