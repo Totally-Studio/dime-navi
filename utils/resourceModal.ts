@@ -353,6 +353,9 @@ export const openResourceInModal = async (
         if (success) {
           console.log(`✓ Modal opened successfully for ${resource.title}`);
 
+          // Dispatch custom event to notify components that modal opened (prevents reference panel overlay)
+          window.dispatchEvent(new CustomEvent('wordpress-modal-opened'));
+
           // Use cleanup manager for robust backdrop handling
           const manager = ModalCleanupManager.getInstance();
           manager.setupObserver(); // Watch for backdrop elements

@@ -1,9 +1,9 @@
 import { Template } from './types';
 
 // ==================== WIDGET VERSION ====================
-export const WIDGET_VERSION = '2026.02.04.3'; // Format: YYYY.MM.DD.BUILD
-// Previous: 2026.02.04.2 (removed inline styles but X button didn't trigger cleanup)
-// Current: 2026.02.04.3 (HOTFIX: added X button click listener for cleanup)
+export const WIDGET_VERSION = '2026.02.04.4'; // Format: YYYY.MM.DD.BUILD
+// Previous: 2026.02.04.3 (added X button click listener for cleanup)
+// Current: 2026.02.04.4 (auto-close reference panel when WordPress modal opens)
 
 // ==================== DEFAULT RESPONSE TEMPLATE ====================
 // Change this to switch the default template used by NaVi and all widgets.
