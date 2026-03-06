@@ -73,7 +73,7 @@ service cloud.firestore {
     // AI logs - authenticated users can write their own logs
     // SECURITY: Validate userId matches auth UID and enforce document size limit
     match /ai_logs/{logId} {
-      allow read: if false; // Admin only
+      allow read: if isSyncService();
       allow create: if isAuthenticated()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll(['userId', 'timestamp', 'type'])
@@ -84,7 +84,7 @@ service cloud.firestore {
     // Prompt metrics - authenticated users can write their own metrics
     // SECURITY: Validate userId matches auth UID and enforce document size limit
     match /prompt_metrics/{metricId} {
-      allow read: if false; // Admin only - use Firebase Console to view
+      allow read: if isSyncService();
       allow create: if isAuthenticated()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.keys().hasAll(['userId', 'query', 'model'])
