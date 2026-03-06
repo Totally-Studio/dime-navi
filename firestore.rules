@@ -13,6 +13,12 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Helper: check if user is the content sync service account
+    function isSyncService() {
+      return isAuthenticated()
+        && request.auth.token.email == 'navi-content-sync@dimesociety.org';
+    }
+
     // Users collection - users can read/write their own data
     match /users/{userId} {
       allow read, write: if isOwner(userId);
@@ -49,28 +55,41 @@ service cloud.firestore {
       allow write: if false; // Admin only via console
     }
 
-    // Timestamped knowledge base
-    match /knowledgebase_wp_2026-01-16T10-05-04/{docId} {
-      allow read: if isAuthenticated();
-      allow write: if false; // Admin only via console
+    // Timestamped knowledge base collections (matches all knowledgebase_wp_* collections)
+    match /{collection}/{docId} {
+      allow read: if isAuthenticated() && collection.matches('knowledgebase_wp_.*');
+      allow create, update: if isSyncService() && collection.matches('knowledgebase_wp_.*');
+      // Allow citationId updates from any authenticated user
+      allow update: if isAuthenticated() && collection.matches('knowledgebase_wp_.*')
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['citationId']);
     }
 
     // Knowledge base configuration
     match /knowledgebase_config/{docId} {
       allow read: if isAuthenticated();
-      allow write: if false; // Admin only via console
+      allow write: if isSyncService();
     }
 
     // AI logs - authenticated users can write their own logs
+    // SECURITY: Validate userId matches auth UID and enforce document size limit
     match /ai_logs/{logId} {
       allow read: if false; // Admin only
-      allow write: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['userId', 'timestamp', 'type'])
+        && request.resource.size() < 50000;
+      allow update, delete: if false; // Logs are immutable
     }
 
-    // 📊 PROMPT METRICS - authenticated users can write their own metrics
+    // Prompt metrics - authenticated users can write their own metrics
+    // SECURITY: Validate userId matches auth UID and enforce document size limit
     match /prompt_metrics/{metricId} {
       allow read: if false; // Admin only - use Firebase Console to view
-      allow write: if isAuthenticated(); // Any authenticated user can log metrics
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasAll(['userId', 'query', 'model'])
+        && request.resource.size() < 100000;
+      allow update, delete: if false; // Metrics are immutable
     }
   }
 }
