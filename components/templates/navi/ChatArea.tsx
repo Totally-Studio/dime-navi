@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import StreamingMarkdown from '../../StreamingMarkdown';
 import { Resource } from '../../../types';
 import { Citation, parseCitations } from '../../../utils/citationParser';
 import { WIDGET_VERSION } from '../../../constants';
 import SignInPrompt from '../../../src/components/SignInPrompt';
 import { openResourceInModal, prefetchLibraryResources } from '../../../utils/resourceModal';
+import { logger } from '../../../utils/logger';
 
 interface Message {
   id: string;
@@ -51,6 +53,11 @@ interface ChatAreaProps {
   isSigningIn?: boolean;
   // Progress for ticker
   reasoningSteps?: string;
+  // Citation mode toggle
+  usePermanentCitations?: boolean;
+  citationMode?: 'legacy' | 'suffix' | 'permanent';
+  onToggleCitationMode?: () => void;
+  onSetCitationMode?: (mode: 'legacy' | 'suffix' | 'permanent') => void;
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
@@ -85,13 +92,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   isSigningIn = false,
   // Progress for ticker
   reasoningSteps = '',
+  // Citation mode
+  usePermanentCitations = false,
+  citationMode = 'suffix',
+  onToggleCitationMode,
+  onSetCitationMode,
 }) => {
   const [copied, setCopied] = useState(false);
   const [showReferences, setShowReferences] = useState(false);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
   const [streamingCitations, setStreamingCitations] = useState<Citation[]>([]);
-  const [filteredCitationIds, setFilteredCitationIds] = useState<number[] | null>(null);
-  const [selectedCitations, setSelectedCitations] = useState<Set<number>>(new Set());
+  const [filteredCitationIds, setFilteredCitationIds] = useState<string[] | null>(null);
+  const [selectedCitations, setSelectedCitations] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -99,31 +111,41 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
   const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
 
+  // Track query count for session-unique citation IDs
+  const queryCount = useMemo(() => {
+    return messages.filter(m => m.role === 'assistant').length;
+  }, [messages]);
+
   // Parse citations from all assistant messages
   const allCitations = useMemo(() => {
     const assistantMessages = messages.filter(m => m.role === 'assistant');
     const allParsed: Citation[] = [];
 
-    assistantMessages.forEach(msg => {
-      const { citations: msgCitations } = parseCitations(msg.content, resources);
+    assistantMessages.forEach((msg, idx) => {
+      // Legacy mode: always queryIndex 0 (reproduces original bug for demo)
+      // Suffix mode: real index for query-aware numbering
+      // Permanent mode: uses Firestore citationIds
+      const queryIdx = citationMode === 'legacy' ? 0 : idx;
+      const parseOpts = { usePermanentIds: usePermanentCitations, queryIndex: queryIdx };
+      const { citations: msgCitations } = parseCitations(msg.content, resources, parseOpts);
       allParsed.push(...msgCitations);
     });
 
-    // Add streaming citations
+    // Add streaming citations (current query = next index)
     if (streamingCitations.length > 0) {
       allParsed.push(...streamingCitations);
     }
 
-    // Deduplicate by citation id
+    // Deduplicate by displayId — now guaranteed unique across queries
     const uniqueCitations = allParsed.reduce((acc, citation) => {
-      if (!acc.find(c => c.id === citation.id && c.title === citation.title)) {
+      if (!acc.find(c => c.displayId === citation.displayId)) {
         acc.push(citation);
       }
       return acc;
     }, [] as Citation[]);
 
     return uniqueCitations;
-  }, [messages, resources, streamingCitations]);
+  }, [messages, resources, streamingCitations, usePermanentCitations, citationMode]);
 
   // Pre-fetch library resources as soon as citations are detected during streaming
   // Only prefetch NEW resources that haven't been prefetched yet
@@ -150,7 +172,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       });
 
       if (newResources.length > 0) {
-        console.log(`🚀 ${newResources.length} NEW library resources detected - pre-fetching NOW`);
+        logger.debug(`🚀 ${newResources.length} NEW library resources detected - pre-fetching NOW`);
 
         // Track which resources we're prefetching
         newResources.forEach(resource => {
@@ -190,7 +212,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   useEffect(() => {
     const handleModalOpen = () => {
       if (showReferences) {
-        console.log('🔄 Auto-closing reference panel (modal opened)');
+        logger.debug('🔄 Auto-closing reference panel (modal opened)');
         setShowReferences(false);
       }
     };
@@ -214,7 +236,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
       // If panel exists and click is NOT inside it, close
       if (panelContent && !panelContent.contains(target)) {
-        console.log('🔄 Closing reference panel (clicked outside panel)');
+        logger.debug('🔄 Closing reference panel (clicked outside panel)');
         setShowReferences(false);
       }
     };
@@ -636,7 +658,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     <h1>NaVi Response</h1>
     <div class="user-prompt">
         <h2>User Prompt</h2>
-        <p>${lastUserMsg}</p>
+        <p>${DOMPurify.sanitize(lastUserMsg)}</p>
     </div>
     <hr>
     <div class="smd-content">
@@ -793,7 +815,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     <h1>NaVi Response</h1>
     <div class="user-prompt">
         <h2>User Prompt</h2>
-        <p>${lastUserMsg}</p>
+        <p>${DOMPurify.sanitize(lastUserMsg)}</p>
     </div>
     <hr>
     <div class="smd-content">
@@ -820,7 +842,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   };
 
   // Handle citation clicks - open references panel and filter to clicked citations
-  const handleShowCitations = (citationIds: number[]) => {
+  const handleShowCitations = (citationIds: string[]) => {
     setFilteredCitationIds(citationIds);
     setShowReferences(true);
   };
@@ -838,7 +860,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
   // Get citations to display (filtered or all)
   const displayedCitations = filteredCitationIds
-    ? allCitations.filter(c => filteredCitationIds.includes(c.id))
+    ? allCitations.filter(c => filteredCitationIds.includes(c.displayId))
     : allCitations;
 
   const hasMessages = messages.length > 0 || streamingContent.length > 0;
@@ -935,17 +957,26 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             <WelcomeState subtitle={welcomeSubtitle} onPromptSelect={onPromptSelect} />
           ) : (
             <div className="navi-messages-container">
-              {messages.map((message) => (
-                <MessageBubble
-                  key={message.id}
-                  message={message}
-                  resources={resources}
-                  onViewResource={onViewResource}
-                  onOpenResourceUrl={onOpenResourceUrl}
-                  onShowCitations={handleShowCitations}
-                  showMetadata={showMetadata}
-                />
-              ))}
+              {messages.map((message) => {
+                // Calculate assistant message index for query-based citation suffixes
+                const assistantIndex = citationMode === 'legacy' ? 0
+                  : message.role === 'assistant'
+                    ? messages.filter((m, i) => m.role === 'assistant' && i <= messages.indexOf(message)).length - 1
+                    : 0;
+                return (
+                  <MessageBubble
+                    key={message.id}
+                    message={message}
+                    resources={resources}
+                    onViewResource={onViewResource}
+                    onOpenResourceUrl={onOpenResourceUrl}
+                    onShowCitations={handleShowCitations}
+                    showMetadata={showMetadata}
+                    usePermanentCitations={usePermanentCitations}
+                    queryIndex={assistantIndex}
+                  />
+                );
+              })}
               {isLoading && streamingContent && (
                 <div className="navi-message assistant">
                   <div className="navi-message-avatar">
@@ -958,6 +989,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       resources={resources}
                       onCitationClick={onViewResource}
                       onShowCitations={handleShowCitations}
+                      usePermanentCitations={usePermanentCitations}
+                      queryIndex={citationMode === 'legacy' ? 0 : queryCount}
                     />
                     {showMetadata && streamingContent && (
                       <ResponseMetadataDisplay metadata={calculateMetadata(streamingContent, resources)} />
@@ -1018,20 +1051,20 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     {displayedCitations.map(citation => {
                       const isLibrary = citation.resource?.contentType === 'library';
                       const isRoadmap = citation.resource?.contentType === 'roadmap';
-                      const isSelected = selectedCitations.has(citation.id);
+                      const isSelected = selectedCitations.has(citation.displayId);
                       const contentTypeClass = isRoadmap ? 'roadmap' : isLibrary ? 'library' : '';
 
                       return (
-                        <li key={citation.id} className={`navi-references-item ${contentTypeClass}`}>
+                        <li key={citation.displayId} className={`navi-references-item ${contentTypeClass}`}>
                           {/* Checkbox */}
                           <button
                             className={`navi-references-checkbox ${isSelected ? 'checked' : ''}`}
                             onClick={() => {
                               const newSelected = new Set(selectedCitations);
                               if (isSelected) {
-                                newSelected.delete(citation.id);
+                                newSelected.delete(citation.displayId);
                               } else {
-                                newSelected.add(citation.id);
+                                newSelected.add(citation.displayId);
                                 // Also add to bookmarks
                                 if (onViewResource && citation.resource) {
                                   onViewResource(citation.resource, citation.id);
@@ -1048,7 +1081,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                             )}
                           </button>
                           {/* Reference number */}
-                          <span className="navi-references-id">[{citation.id}]</span>
+                          <span className="navi-references-id">{citation.displayId}</span>
                           {/* Title */}
                           <span className="navi-references-title-text">
                             {citation.resource?.title || citation.title}
@@ -1190,17 +1223,19 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 disabled={isLoading}
                 rows={1}
               />
-              <button
-                onClick={onSend}
-                disabled={!input.trim() || isLoading}
-                className="navi-send-btn"
-                title="Send message"
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', gap: '6px', flexShrink: 0, alignSelf: 'stretch' }}>
+                <button
+                  onClick={onSend}
+                  disabled={!input.trim() || isLoading}
+                  className="navi-send-btn"
+                  title="Send message"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 Send
               </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1386,11 +1421,10 @@ function calculateMetadata(content: string, resources: Resource[]): ResponseMeta
   let roadmapCount = 0;
 
   citations.forEach(citation => {
-    const resource = resources.find(r => r.id === citation.resourceId);
-    if (resource) {
-      if (resource.contentType === 'library') {
+    if (citation.resource) {
+      if (citation.resource.contentType === 'library') {
         libraryCount++;
-      } else if (resource.contentType === 'roadmap') {
+      } else if (citation.resource.contentType === 'roadmap') {
         roadmapCount++;
       }
     }
@@ -1435,11 +1469,13 @@ interface MessageBubbleProps {
   resources?: Resource[];
   onViewResource?: (resource: Resource) => void;
   onOpenResourceUrl?: (resource: Resource) => void;
-  onShowCitations?: (citationIds: number[]) => void;
+  onShowCitations?: (citationIds: string[]) => void;
   showMetadata?: boolean;
+  usePermanentCitations?: boolean;
+  queryIndex?: number;
 }
 
-function MessageBubble({ message, resources = [], onViewResource, onOpenResourceUrl, onShowCitations, showMetadata = false }: MessageBubbleProps) {
+function MessageBubble({ message, resources = [], onViewResource, onOpenResourceUrl, onShowCitations, showMetadata = false, usePermanentCitations, queryIndex = 0 }: MessageBubbleProps) {
   if (message.role === 'user') {
     return (
       <div className="navi-message user">
@@ -1463,6 +1499,8 @@ function MessageBubble({ message, resources = [], onViewResource, onOpenResource
           resources={resources}
           onCitationClick={onViewResource}
           onShowCitations={onShowCitations}
+          usePermanentCitations={usePermanentCitations}
+          queryIndex={queryIndex}
         />
         {metadata && <ResponseMetadataDisplay metadata={metadata} />}
       </div>

@@ -28,6 +28,7 @@ import ReactDOM from 'react-dom/client';
 import { NaViApp } from './components/templates/navi';
 import { WIDGET_VERSION } from './constants';
 import './index.css';
+import { logger } from './utils/logger';
 
 // Page context from WordPress or other CMS
 interface PageContext {
@@ -41,6 +42,8 @@ interface PageContext {
   siteName?: string;
   categories?: string[];
   customFields?: Record<string, string | number>;
+  termsContent?: string;
+  termsEnabled?: boolean;
 }
 
 // NaVi widget configuration
@@ -52,7 +55,7 @@ interface NaviConfig {
 
 // Function to inject Google Fonts (async for faster initial load)
 function injectGoogleFonts() {
-  console.log(`DiMe NaVi Widget ${WIDGET_BUILD_VERSION} (Task #3 + Terms Modal Fix)`);
+  logger.debug(`DiMe NaVi Widget DIME.v${WIDGET_VERSION}`);
 
   // Check if Google Fonts is already loaded
   if (document.getElementById('dime-navi-fonts')) {
@@ -79,7 +82,7 @@ function injectGoogleFonts() {
   fontLink.media = 'print'; // Load async
   fontLink.onload = function() { (this as any).media = 'all'; }; // Switch to all after load
   document.head.appendChild(fontLink);
-  console.log('DiMe NaVi: Google Fonts (DM Sans) loading async');
+  logger.debug('DiMe NaVi: Google Fonts (DM Sans) loading async');
 }
 
 // Store the base URL for CSS files globally so we can re-inject if needed
@@ -108,7 +111,7 @@ function ensureCssLoaded(id: string, filename: string): void {
 
   const baseUrl = getWidgetBaseUrl();
   if (!baseUrl) {
-    console.warn('DiMe NaVi: Could not find widget script URL for CSS injection');
+    logger.warn('DiMe NaVi: Could not find widget script URL for CSS injection');
     return;
   }
 
@@ -118,7 +121,7 @@ function ensureCssLoaded(id: string, filename: string): void {
   link.rel = 'stylesheet';
   link.href = cssUrl;
   document.head.appendChild(link);
-  console.log(`DiMe NaVi: CSS loaded from ${cssUrl}`);
+  logger.debug(`DiMe NaVi: CSS loaded from ${cssUrl}`);
 }
 
 // Function to inject CSS dynamically when loaded as external script
@@ -127,12 +130,12 @@ function injectWidgetCSS() {
   const oldWidgetCss = document.getElementById('dime-navi-widget-css');
   if (oldWidgetCss) {
     oldWidgetCss.remove();
-    console.log('DiMe NaVi: Removed old widget CSS');
+    logger.debug('DiMe NaVi: Removed old widget CSS');
   }
   const oldResponseCss = document.getElementById('dime-navi-response-stream-css');
   if (oldResponseCss) {
     oldResponseCss.remove();
-    console.log('DiMe NaVi: Removed old response stream CSS');
+    logger.debug('DiMe NaVi: Removed old response stream CSS');
   }
 
   // Get the script URL to determine CSS URL
@@ -146,7 +149,7 @@ function injectWidgetCSS() {
     widgetLink.rel = 'stylesheet';
     widgetLink.href = widgetCssUrl;
     document.head.appendChild(widgetLink);
-    console.log('DiMe NaVi: Widget CSS loaded from', widgetCssUrl);
+    logger.debug('DiMe NaVi: Widget CSS loaded from', widgetCssUrl);
 
     // Load response-stream.css second (less critical - can load async)
     const responseStreamUrl = baseUrl + 'response-stream.css';
@@ -157,9 +160,9 @@ function injectWidgetCSS() {
     responseLink.media = 'print'; // Load async
     responseLink.onload = function() { (this as any).media = 'all'; }; // Switch after load
     document.head.appendChild(responseLink);
-    console.log('DiMe NaVi: Response Stream CSS loading async from', responseStreamUrl);
+    logger.debug('DiMe NaVi: Response Stream CSS loading async from', responseStreamUrl);
   } else {
-    console.warn('DiMe NaVi: Could not find widget script URL');
+    logger.warn('DiMe NaVi: Could not find widget script URL');
   }
 }
 
@@ -178,7 +181,7 @@ function setupCssProtection() {
             if (node.id === 'dime-navi-widget-css' ||
                 node.id === 'dime-navi-response-stream-css' ||
                 node.id === 'dime-navi-fonts') {
-              console.log('DiMe NaVi: CSS was removed from head, will re-inject:', node.id);
+              logger.debug('DiMe NaVi: CSS was removed from head, will re-inject:', node.id);
               needsReinjection = true;
             }
           }
@@ -200,7 +203,7 @@ function setupCssProtection() {
   });
 
   observer.observe(document.head, { childList: true });
-  console.log('DiMe NaVi: CSS protection observer installed');
+  logger.debug('DiMe NaVi: CSS protection observer installed');
 }
 
 // Scroll behavior and WordPress button listener removed - widget now permanently visible
@@ -230,11 +233,11 @@ let currentPageContext: PageContext | null = null;
 
 const DimeNaviWidget = {
   init: (config: NaviConfig = {}) => {
-    console.log('DiMe NaVi Widget: init() called with config:', config);
+    logger.debug('DiMe NaVi Widget: init() called with config:', config);
 
     // Check if already initialized
     if (naviRoot) {
-      console.warn('DiMe NaVi Widget is already initialized');
+      logger.warn('DiMe NaVi Widget is already initialized');
       return;
     }
 
@@ -252,7 +255,7 @@ const DimeNaviWidget = {
     }
 
     if (!naviContainer) {
-      console.error('DiMe NaVi: Container not found');
+      logger.error('DiMe NaVi: Container not found');
       return;
     }
 
@@ -268,7 +271,7 @@ const DimeNaviWidget = {
     naviContainer.style.zIndex = 'auto';
     naviContainer.style.pointerEvents = 'auto';
 
-    console.log('DiMe NaVi: Rendering into container. Parent:', naviContainer.parentElement?.tagName, naviContainer.parentElement?.className);
+    logger.debug('DiMe NaVi: Rendering into container. Parent:', naviContainer.parentElement?.tagName, naviContainer.parentElement?.className);
 
     // Apply custom button color if provided
     if (config.buttonColor) {
@@ -276,19 +279,19 @@ const DimeNaviWidget = {
     }
 
     // Create React root and render
-    console.log('DiMe NaVi: Creating React root');
+    logger.debug('DiMe NaVi: Creating React root');
     naviRoot = ReactDOM.createRoot(naviContainer);
 
     try {
-      console.log('DiMe NaVi: Rendering NaViApp with pageContext:', config.pageContext);
+      logger.debug('DiMe NaVi: Rendering NaViApp with pageContext:', config.pageContext);
       naviRoot.render(
         <React.StrictMode>
           <NaViApp key={config.pageContext?.url || 'initial'} pageContext={config.pageContext} />
         </React.StrictMode>
       );
-      console.log('DiMe NaVi: NaViApp rendered successfully');
+      logger.debug('DiMe NaVi: NaViApp rendered successfully');
     } catch (renderError) {
-      console.error('DiMe NaVi: Failed to render NaViApp:', renderError);
+      logger.error('DiMe NaVi: Failed to render NaViApp:', renderError);
     }
 
     // Scroll behavior removed - widget now permanently visible
@@ -300,14 +303,14 @@ const DimeNaviWidget = {
       setTimeout(() => setupCssProtection(), 1000);
     }
 
-    console.log('DiMe NaVi Widget initialized', { ...config, pageContext: currentPageContext });
+    logger.debug('DiMe NaVi Widget initialized', { ...config, pageContext: currentPageContext });
   },
 
   reinit: (newPageContext: PageContext) => {
-    console.log('DiMe NaVi: reinit() called with context:', newPageContext);
+    logger.debug('DiMe NaVi: reinit() called with context:', newPageContext);
 
     if (!naviRoot || !naviContainer) {
-      console.warn('DiMe NaVi: Widget not initialized, cannot reinit');
+      logger.warn('DiMe NaVi: Widget not initialized, cannot reinit');
       return;
     }
 
@@ -326,14 +329,14 @@ const DimeNaviWidget = {
     naviContainer.setAttribute('data-page-context', JSON.stringify(newPageContext));
 
     // Re-render the React component with new context
-    console.log('DiMe NaVi: Re-rendering NaViApp with new URL:', newPageContext.url);
+    logger.debug('DiMe NaVi: Re-rendering NaViApp with new URL:', newPageContext.url);
     naviRoot.render(
       <React.StrictMode>
         <NaViApp key={newPageContext.url} pageContext={newPageContext} />
       </React.StrictMode>
     );
 
-    console.log('DiMe NaVi: NaViApp re-rendered successfully');
+    logger.debug('DiMe NaVi: NaViApp re-rendered successfully');
   },
 
   destroy: () => {
@@ -346,7 +349,7 @@ const DimeNaviWidget = {
       naviContainer = null;
     }
     currentPageContext = null;
-    console.log('DiMe NaVi Widget destroyed');
+    logger.debug('DiMe NaVi Widget destroyed');
   },
 
   // Getter for page context
@@ -358,33 +361,33 @@ const DimeNaviWidget = {
 // Immediately assign to window
 if (typeof window !== 'undefined') {
   window.DimeNaviWidget = DimeNaviWidget;
-  console.log('DiMe NaVi Widget loaded and available as window.DimeNaviWidget');
+  logger.debug('DiMe NaVi Widget loaded and available as window.DimeNaviWidget');
 
   // Listen for URL change events from WordPress plugin
   window.addEventListener('dime-navi-reinit', (event: Event) => {
     const customEvent = event as CustomEvent<PageContext>;
     if (customEvent.detail) {
-      console.log('DiMe NaVi: Received dime-navi-reinit event', customEvent.detail);
+      logger.debug('DiMe NaVi: Received dime-navi-reinit event', customEvent.detail);
       DimeNaviWidget.reinit(customEvent.detail);
     }
   });
 
-  console.log('DiMe NaVi: URL change listener registered');
+  logger.debug('DiMe NaVi: URL change listener registered');
 }
 
 // Auto-init function
 function autoInit() {
-  console.log('DiMe NaVi: autoInit() called');
+  logger.debug('DiMe NaVi: autoInit() called');
 
   // Find container with auto-init attribute
   const containerDiv = document.querySelector('[data-dime-navi-auto-init="true"]');
 
   if (!containerDiv) {
-    console.log('DiMe NaVi: No auto-init container found');
+    logger.debug('DiMe NaVi: No auto-init container found');
     return;
   }
 
-  console.log('DiMe NaVi: Found auto-init container:', {
+  logger.debug('DiMe NaVi: Found auto-init container:', {
     id: containerDiv.id,
     autoInit: containerDiv.getAttribute('data-dime-navi-auto-init')
   });
@@ -395,9 +398,9 @@ function autoInit() {
   if (configAttr) {
     try {
       fullConfig = JSON.parse(configAttr);
-      console.log('DiMe NaVi: Parsed config from data-config:', fullConfig);
+      logger.debug('DiMe NaVi: Parsed config from data-config:', fullConfig);
     } catch (e) {
-      console.warn('DiMe NaVi: Could not parse data-config', e);
+      logger.warn('DiMe NaVi: Could not parse data-config', e);
     }
   }
 
@@ -414,12 +417,12 @@ function autoInit() {
       try {
         pageContext = JSON.parse(pageContextAttr);
       } catch (e) {
-        console.warn('DiMe NaVi: Could not parse page context', e);
+        logger.warn('DiMe NaVi: Could not parse page context', e);
       }
     }
   }
 
-  console.log('DiMe NaVi: Initializing widget');
+  logger.debug('DiMe NaVi: Initializing widget');
 
   // Initialize widget
   try {
@@ -428,9 +431,9 @@ function autoInit() {
       pageContext,
       container: containerDiv as HTMLElement
     });
-    console.log('DiMe NaVi: Widget initialized successfully');
+    logger.debug('DiMe NaVi: Widget initialized successfully');
   } catch (error) {
-    console.error('DiMe NaVi: Widget initialization FAILED:', error);
+    logger.error('DiMe NaVi: Widget initialization FAILED:', error);
   }
 }
 

@@ -155,7 +155,7 @@
   box-sizing: border-box;
   color: var(--navi-text-primary) !important;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden - allows mobile panels to display properly */
   /* CSS Isolation - prevent inheritance from parent */
   text-transform: none !important;
   letter-spacing: normal !important;
@@ -198,21 +198,22 @@
 /* Small mobile screens (< 480px) - Widget expands to fill screen with minimal margins */
 @media (max-width: 480px) {
   .navi-container {
-    /* Fill viewport with margins - top respects page header */
-    position: fixed !important;
-    top: 56px !important; /* Respect page header height */
-    left: 8px !important;
-    right: 8px !important;
-    bottom: 8px !important;
-    width: calc(100vw - 16px) !important;
-    width: calc(100dvw - 16px) !important;
-    height: calc(100vh - 64px) !important; /* Account for top offset + bottom margin */
-    height: calc(100dvh - 64px) !important;
-    min-height: unset !important;
-    max-height: unset !important;
+    /* Natural scroll - widget flows in page as self-contained unit */
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: 80vh !important;
+    min-height: 500px !important;
+    max-height: 80vh !important;
     border-radius: 12px;
     z-index: 9999;
-    margin: 0 !important;
+    margin: 0 0 2rem 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
 
     /* Responsive font scaling for small screens */
     --responsive-font-base: clamp(14px, 3.5vw, 16px);
@@ -221,20 +222,130 @@
   }
 
   .navi-container.embedded {
-    position: fixed !important;
-    top: 56px !important; /* Respect page header height */
-    left: 8px !important;
-    right: 8px !important;
-    bottom: 8px !important;
-    width: calc(100vw - 16px) !important;
-    width: calc(100dvw - 16px) !important;
-    height: calc(100vh - 64px) !important;
-    height: calc(100dvh - 64px) !important;
-    min-height: unset !important;
-    max-height: unset !important;
+    /* Embedded also self-contained */
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: 80vh !important;
+    min-height: 500px !important;
+    max-height: 80vh !important;
     border-radius: 12px;
     z-index: 9999;
-    margin: 0 !important;
+    margin: 0 0 2rem 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  /* Chat area fills available space */
+  .navi-chat-area {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Messages container scrolls within widget */
+  .navi-messages-container {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 1rem !important;
+  }
+
+  /* Input stays at bottom of widget (not viewport) */
+  .navi-input-footer {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    flex-shrink: 0 !important;
+    z-index: 10 !important;
+    background: var(--navi-card-bg-darker) !important;
+    border-top: 1px solid var(--navi-border) !important;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  /* Hide vetted sources footer only (keep login footer visible) */
+  .navi-mobile-panel .navi-sources-panel {
+    display: none !important;
+  }
+
+  /* Make login footer more compact on mobile */
+  .navi-mobile-panel .navi-login-footer {
+    min-height: auto !important;
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .navi-mobile-panel .navi-login-btn {
+    font-size: 13px !important;
+    padding: 0.5rem 0.75rem !important;
+    min-height: 40px !important;
+  }
+
+  /* Improve mobile panel scrolling - fix positioning */
+  .navi-mobile-panel {
+    position: fixed !important;
+    bottom: 70px !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    max-height: calc(100vh - 150px) !important;
+    height: auto !important;
+    overflow: hidden !important;
+    z-index: 200 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Ensure sidebars inside panel use flex layout */
+  .navi-mobile-panel .navi-left-sidebar,
+  .navi-mobile-panel .navi-right-sidebar {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Sidebar content area fills space and scrolls */
+  .navi-mobile-panel .navi-sidebar-content,
+  .navi-mobile-panel .navi-right-sidebar-content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Conversation list scrolls within sidebar content */
+  .navi-mobile-panel .navi-conversation-list {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    min-height: 0 !important;
+  }
+
+  /* Make panel header compact */
+  .navi-mobile-panel .navi-panel-header {
+    flex-shrink: 0 !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Section snippet compact */
+  .navi-mobile-panel .navi-sidebar-section {
+    flex-shrink: 0 !important;
+  }
+
+  /* Footer stays at bottom */
+  .navi-mobile-panel .navi-login-footer {
+    flex-shrink: 0 !important;
   }
 
   /* Ensure chat area fills available space */
@@ -3931,8 +4042,8 @@ a.navi-sources-link {
     left: 0;
     right: 0;
     top: auto;
-    max-height: 50vh;
-    min-height: 150px; /* Ensure panel has visible content */
+    max-height: 70vh; /* Increased from 50vh for better visibility */
+    min-height: 200px; /* Increased from 150px - ensure panel has visible content */
     background: var(--navi-sidebar-bg);
     border-top: 2px solid var(--navi-accent);
     border-bottom: none;
@@ -3958,7 +4069,7 @@ a.navi-sources-link {
   /* Panel content styling when in overlay mode */
   .navi-mobile-panel .navi-sidebar-content {
     padding: 0.75rem 1rem 1rem;
-    max-height: calc(50vh - 1rem);
+    max-height: calc(65vh - 4rem); /* Increased from calc(50vh - 1rem) for better content visibility */
     overflow-y: auto;
   }
 
@@ -3972,7 +4083,7 @@ a.navi-sources-link {
   /* Mobile panel close button */
   .navi-mobile-panel-close {
     position: absolute;
-    right: 0.75rem;
+    left: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
     width: var(--touch-target-min, 44px);
@@ -3986,12 +4097,43 @@ a.navi-sources-link {
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    z-index: 10;
   }
 
   .navi-mobile-panel-close:hover,
   .navi-mobile-panel-close:active {
     background: var(--navi-card-bg);
     color: var(--navi-text-primary);
+  }
+
+  /* Add padding to panel header when close button is present */
+  .navi-mobile-panel .navi-panel-header {
+    padding-left: 3.5rem !important;
+  }
+
+  /* Close animations for mobile panels */
+  @keyframes naviPanelSlideDown {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+  }
+
+  .navi-mobile-panel.closing {
+    animation: naviPanelSlideDown 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  .navi-mobile-backdrop.closing {
+    animation: naviBackdropFadeOut 0.2s ease forwards;
+  }
+
+  @keyframes naviBackdropFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
   }
 
   /* Mobile overlay sidebar styling - override all positioning from other rules */

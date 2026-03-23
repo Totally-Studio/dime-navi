@@ -12,9 +12,11 @@ interface RightSidebarProps {
   onRemoveResource?: (citationId: number) => void;
   onViewResource?: (resource: Resource) => void;
   sourceCount?: number;
+  collectionName?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onOpenTerms?: () => void;
+  showTermsLink?: boolean;
   // Mobile overlay props
   isMobileOverlay?: boolean;
   onClose?: () => void;
@@ -27,9 +29,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onRemoveResource,
   onViewResource,
   sourceCount = 0,
+  collectionName,
   isCollapsed = false,
   onToggleCollapse,
   onOpenTerms,
+  showTermsLink = true,
   isMobileOverlay = false,
   onClose,
   isAuthenticated = false,
@@ -248,15 +252,20 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" stroke="currentColor" strokeWidth="2"/>
               <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" stroke="currentColor" strokeWidth="2"/>
             </svg>
-            <span>{sourceCount} vetted sources indexed . <a
+            <span>{sourceCount} vetted sources indexed.{showTermsLink && (<>{' '}<a
               href="#"
               className="navi-sources-link"
               onClick={(e) => {
                 e.preventDefault();
                 onOpenTerms?.();
               }}
-            >See Terms</a></span>
+            >See Terms</a></>)}</span>
           </div>
+          {collectionName && (
+            <div style={{ fontSize: '9px', color: '#9ca3af', marginTop: '4px', paddingLeft: '24px', fontFamily: 'monospace' }}>
+              {collectionName}
+            </div>
+          )}
         </div>
       </div>
     </aside>

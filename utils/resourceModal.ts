@@ -1,4 +1,6 @@
+import DOMPurify from 'dompurify';
 import { Resource } from '../types';
+import { logger } from './logger';
 
 /**
  * Singleton manager for robust modal backdrop cleanup
@@ -87,7 +89,7 @@ class ModalCleanupManager {
       }
     });
 
-    console.log('🔍 Detected backdrops:', backdrops.map(el => el.id || el.className || el.tagName));
+    logger.debug('🔍 Detected backdrops:', backdrops.map(el => el.id || el.className || el.tagName));
     return backdrops;
   }
 
@@ -112,7 +114,7 @@ class ModalCleanupManager {
       mainContainer.classList.remove('show');
       // Hide the container
       mainContainer.style.display = 'none';
-      console.log('🗑️ Cleared main container contents and styles (kept container for reuse)');
+      logger.debug('🗑️ Cleared main container contents and styles (kept container for reuse)');
       removedCount++;
     }
 
@@ -121,7 +123,7 @@ class ModalCleanupManager {
     backdrops.forEach(backdrop => {
       // Don't remove the main container itself (we already handled it)
       if (backdrop.id !== 'navi-dynamic-modal-container') {
-        console.log('🗑️ Removing backdrop:', backdrop.id || backdrop.className || backdrop.tagName);
+        logger.debug('🗑️ Removing backdrop:', backdrop.id || backdrop.className || backdrop.tagName);
         backdrop.remove();
         removedCount++;
       }
@@ -136,7 +138,7 @@ class ModalCleanupManager {
     document.documentElement.classList.remove('modal-open', 'no-scroll');
 
     if (removedCount > 0) {
-      console.log(`✅ Cleaned up ${removedCount} backdrop element(s)`);
+      logger.debug(`✅ Cleaned up ${removedCount} backdrop element(s)`);
     }
   }
 
@@ -146,10 +148,10 @@ class ModalCleanupManager {
   verifyCleanup(): boolean {
     const remaining = this.detectBackdropElements();
     if (remaining.length === 0) {
-      console.log('✅ Cleanup verified: all backdrops removed');
+      logger.debug('✅ Cleanup verified: all backdrops removed');
       return true;
     } else {
-      console.warn('⚠️ Cleanup incomplete:', remaining.length, 'backdrop(s) remain');
+      logger.warn('⚠️ Cleanup incomplete:', remaining.length, 'backdrop(s) remain');
       return false;
     }
   }
@@ -172,7 +174,7 @@ class ModalCleanupManager {
               id.includes('modal') || id.includes('backdrop') || id.includes('overlay') ||
               className.includes('modal') || className.includes('backdrop') || className.includes('overlay')
             ) {
-              console.log('👁️ MutationObserver detected new backdrop element:', id || className);
+              logger.debug('👁️ MutationObserver detected new backdrop element:', id || className);
             }
           }
         });
@@ -185,7 +187,7 @@ class ModalCleanupManager {
     });
 
     this.isObserving = true;
-    console.log('👁️ MutationObserver started watching for backdrops');
+    logger.debug('👁️ MutationObserver started watching for backdrops');
   }
 
   /**
@@ -196,7 +198,7 @@ class ModalCleanupManager {
       this.observer.disconnect();
       this.observer = null;
       this.isObserving = false;
-      console.log('👁️ MutationObserver stopped');
+      logger.debug('👁️ MutationObserver stopped');
     }
   }
 
@@ -206,14 +208,14 @@ class ModalCleanupManager {
    */
   registerCloseHandlers(): void {
     if (this.closeHandlersRegistered) {
-      console.log('⚠️ Close handlers already registered, skipping');
+      logger.debug('⚠️ Close handlers already registered, skipping');
       return;
     }
 
     // Escape key handler
     this.escapeHandler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        console.log('⌨️ Escape key pressed, triggering cleanup...');
+        logger.debug('⌨️ Escape key pressed, triggering cleanup...');
         setTimeout(() => {
           cleanupWordPressModalBackdrop();
           this.cleanupHandlers();
@@ -229,7 +231,7 @@ class ModalCleanupManager {
       const closeIcons = document.querySelectorAll('.close-icon');
       closeIcons.forEach(icon => {
         icon.addEventListener('click', () => {
-          console.log('❌ Close icon clicked, triggering cleanup...');
+          logger.debug('❌ Close icon clicked, triggering cleanup...');
           setTimeout(() => {
             cleanupWordPressModalBackdrop();
             this.cleanupHandlers();
@@ -237,12 +239,12 @@ class ModalCleanupManager {
         });
       });
       if (closeIcons.length > 0) {
-        console.log(`✅ Added close icon listeners to ${closeIcons.length} icon(s)`);
+        logger.debug(`✅ Added close icon listeners to ${closeIcons.length} icon(s)`);
       }
     }, 200);
 
     this.closeHandlersRegistered = true;
-    console.log('✅ Close handlers registered (Escape key + X button)');
+    logger.debug('✅ Close handlers registered (Escape key + X button)');
   }
 
   /**
@@ -254,7 +256,7 @@ class ModalCleanupManager {
       this.escapeHandler = null;
     }
     this.closeHandlersRegistered = false;
-    console.log('✅ Close handlers cleaned up');
+    logger.debug('✅ Close handlers cleaned up');
   }
 }
 
@@ -271,13 +273,13 @@ function cleanupWordPressModalBackdrop(): void {
   // Verify and retry if needed
   setTimeout(() => {
     if (!manager.verifyCleanup()) {
-      console.warn('⚠️ Backdrop still present, retrying cleanup...');
+      logger.warn('⚠️ Backdrop still present, retrying cleanup...');
       manager.removeAllBackdrops();
 
       // Final verification
       setTimeout(() => {
         if (!manager.verifyCleanup()) {
-          console.error('❌ Backdrop cleanup failed after retries');
+          logger.error('❌ Backdrop cleanup failed after retries');
         }
       }, 200);
     }
@@ -317,7 +319,7 @@ function enhanceWordPressModalAPI(): void {
   };
 
   isWordPressModalEnhanced = true;
-  console.log('✅ WordPress modal API enhanced with backdrop cleanup');
+  logger.debug('✅ WordPress modal API enhanced with backdrop cleanup');
 }
 
 /**
@@ -336,10 +338,11 @@ export const openResourceInModal = async (
 
   // Library resources: Try modal first
   if (resource.contentType === 'library') {
-    // Get post ID from wpPostId or extract from id (e.g., "wp-138" -> 138)
+    // Get post ID from wpPostId or extract from id
+    // Supports both old format "wp-123" and new format "wp_library_123"
     let postId = resource.wpPostId;
     if (!postId && resource.id) {
-      const match = resource.id.match(/wp-(\d+)/);
+      const match = resource.id.match(/wp[-_](?:(?:library|roadmap)_)?(\d+)/);
       if (match) {
         postId = parseInt(match[1], 10);
       }
@@ -354,10 +357,10 @@ export const openResourceInModal = async (
         // Small delay to ensure React has time to close panel before modal opens
         await new Promise(resolve => setTimeout(resolve, 50));
 
-        console.log(`Opening library resource ${resource.id} (post ID: ${postId}) in modal...`);
+        logger.debug(`Opening library resource ${resource.id} (post ID: ${postId}) in modal...`);
         const success = await window.DimeResourceModal.open(postId);
         if (success) {
-          console.log(`✓ Modal opened successfully for ${resource.title}`);
+          logger.debug(`✓ Modal opened successfully for ${resource.title}`);
 
           // Use cleanup manager for robust backdrop handling
           const manager = ModalCleanupManager.getInstance();
@@ -367,14 +370,14 @@ export const openResourceInModal = async (
           return true;
         }
       } catch (error) {
-        console.warn('Modal open failed, falling back to URL:', error);
+        logger.warn('Modal open failed, falling back to URL:', error);
       }
     } else {
       if (!window.DimeResourceModal) {
-        console.warn('DimeResourceModal API not available, falling back to new tab');
+        logger.warn('DimeResourceModal API not available, falling back to new tab');
       }
       if (!postId) {
-        console.warn(`Could not extract post ID from resource: ${resource.id}`);
+        logger.warn(`Could not extract post ID from resource: ${resource.id}`);
       }
     }
   }
@@ -382,13 +385,13 @@ export const openResourceInModal = async (
   // Roadmap resources or modal fallback: Open in new tab
   const url = resource.url || fallbackUrl;
   if (url) {
-    console.log(`Opening ${resource.contentType} resource in new tab: ${url}`);
+    logger.debug(`Opening ${resource.contentType} resource in new tab: ${url}`);
     window.open(url, '_blank', 'noopener,noreferrer');
     showNewTabNotification(resource.title);
     return true;
   }
 
-  console.error('No valid URL or post ID for resource:', resource);
+  logger.error('No valid URL or post ID for resource:', resource);
   return false;
 };
 
@@ -402,12 +405,14 @@ export const showNewTabNotification = (resourceTitle: string): void => {
   toast.className = 'navi-toast-notification';
   toast.setAttribute('role', 'status');
   toast.setAttribute('aria-live', 'polite');
+  // SECURITY: Sanitize resourceTitle to prevent XSS
+  const sanitizedTitle = DOMPurify.sanitize(resourceTitle);
   toast.innerHTML = `
     <svg class="toast-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
       <path d="M3.5 2A1.5 1.5 0 002 3.5v9A1.5 1.5 0 003.5 14h9a1.5 1.5 0 001.5-1.5V8a.5.5 0 00-1 0v4.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5v-9a.5.5 0 01.5-.5H8a.5.5 0 000-1H3.5z"/>
       <path d="M15 1a1 1 0 00-1-1h-4a.5.5 0 000 1h2.793L7.146 6.646a.5.5 0 10.708.708L13.5 1.707V4.5a.5.5 0 001 0v-4z"/>
     </svg>
-    <span class="toast-message">Opened "${resourceTitle}" in new tab</span>
+    <span class="toast-message">Opened "${sanitizedTitle}" in new tab</span>
   `;
 
   document.body.appendChild(toast);
@@ -429,10 +434,11 @@ export const prefetchLibraryResources = (resources: Resource[]): void => {
   const postIds: number[] = [];
   resources.forEach(resource => {
     if (resource.contentType === 'library') {
-      // Get post ID from wpPostId or extract from id (e.g., "wp-138" -> 138)
+      // Get post ID from wpPostId or extract from id
+      // Supports both old format "wp-123" and new format "wp_library_123"
       let postId = resource.wpPostId;
       if (!postId && resource.id) {
-        const match = resource.id.match(/wp-(\d+)/);
+        const match = resource.id.match(/wp[-_](?:(?:library|roadmap)_)?(\d+)/);
         if (match) {
           postId = parseInt(match[1], 10);
         }
@@ -450,7 +456,7 @@ export const prefetchLibraryResources = (resources: Resource[]): void => {
   // Function to do the actual prefetch
   const doPrefetch = () => {
     if (window.DimeResourceModal && typeof window.DimeResourceModal.prefetchMultiple === 'function') {
-      console.log(`🚀 Pre-fetching ${postIds.length} library resources for instant modal opens`);
+      logger.debug(`🚀 Pre-fetching ${postIds.length} library resources for instant modal opens`);
       window.DimeResourceModal.prefetchMultiple(postIds);
       return true;
     }
@@ -463,16 +469,16 @@ export const prefetchLibraryResources = (resources: Resource[]): void => {
   }
 
   // If modal API not ready yet, retry every 100ms for up to 3 seconds
-  console.log('⏳ Modal API not ready yet, will retry...');
+  logger.debug('⏳ Modal API not ready yet, will retry...');
   let attempts = 0;
   const maxAttempts = 30; // 3 seconds total
   const retryInterval = setInterval(() => {
     attempts++;
     if (doPrefetch()) {
-      console.log(`✓ Modal API ready after ${attempts * 100}ms`);
+      logger.debug(`✓ Modal API ready after ${attempts * 100}ms`);
       clearInterval(retryInterval);
     } else if (attempts >= maxAttempts) {
-      console.warn('❌ Modal API never became available - prefetch skipped');
+      logger.warn('❌ Modal API never became available - prefetch skipped');
       clearInterval(retryInterval);
     }
   }, 100);

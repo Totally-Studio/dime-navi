@@ -1,10 +1,12 @@
-import { GoogleGenAI } from "@google/genai";
 import { Template, SavedOutput, Resource, ChatHistory } from '../types';
-import { SYSTEM_PROMPT_START, SYSTEM_PROMPT_END, ROADMAP_PROMPT, ENABLE_ROADMAP_RECOMMENDATION, TEMPLATE_INSTRUCTIONS, DEFAULT_TEMPLATE_INSTRUCTION } from '../constants';
-import { db } from './firebaseConfig';
+import { SYSTEM_PROMPT_START, SYSTEM_PROMPT_END, ROADMAP_PROMPT, ENABLE_ROADMAP_RECOMMENDATION, TEMPLATE_INSTRUCTIONS, DEFAULT_TEMPLATE_INSTRUCTION, WIDGET_VERSION, DEFAULT_RESPONSE_TEMPLATE } from '../constants';
+import { db, ai } from './firebaseConfig';
 import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, doc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { getGenerativeModel } from 'firebase/ai';
 import { User } from 'firebase/auth';
-import { promptMetricsService } from './promptMetricsService';
+import { promptMetricsService, captureSourceInfo, createPromptConfig } from './promptMetricsService';
+import { ChatQuerySchema } from '../utils/validation';
+import { logger } from '../utils/logger';
 
 // Bookmarked resource type for persisting user bookmarks
 export interface BookmarkedResource {
@@ -13,14 +15,8 @@ export interface BookmarkedResource {
   timestamp: string;
 }
 
-// This service simulates a secure backend running on Cloud Run.
-// It's the ONLY place that should have access to the API Key and direct database access logic.
-
-if (!import.meta.env.VITE_GEMINI_API_KEY) {
-  throw new Error("VITE_GEMINI_API_KEY environment variable not set on the 'backend'");
-}
-
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+// SECURITY: This service uses Firebase Vertex AI which keeps API keys server-side.
+// Authentication is handled by Firebase, preventing unauthorized access and API key exposure.
 
 // Decode HTML entities in text (e.g., &#8217; → ')
 function decodeHtmlEntities(text: string): string {
@@ -44,15 +40,42 @@ class BackendService {
   private knowledgeCacheTimestamp: number = 0;
   private readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes cache TTL
 
+  // SECURITY: Rate limiting to prevent API abuse
+  private rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+  private readonly RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+  private readonly RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
+
   // In a real backend, you would verify the ID token. Here we trust the client-side user object
   // as this is a simulation running on the client.
   private _authenticate(user: User | null): string {
     if (!user) {
-      console.error("BACKEND: Authentication failed. No user provided.");
+      logger.error("BACKEND: Authentication failed. No user provided.");
       throw new Error("Unauthorized: You must be logged in to perform this action.");
     }
-    console.log(`BACKEND: User authenticated successfully with UID: ${user.uid}`);
+    logger.debug(`BACKEND: User authenticated successfully with UID: ${user.uid}`);
     return user.uid;
+  }
+
+  // SECURITY: Check rate limit before API calls
+  private _checkRateLimit(userId: string): void {
+    const now = Date.now();
+    const userLimit = this.rateLimitMap.get(userId);
+
+    if (!userLimit || now > userLimit.resetAt) {
+      // First request or window expired - reset counter
+      this.rateLimitMap.set(userId, { count: 1, resetAt: now + this.RATE_LIMIT_WINDOW_MS });
+      logger.debug(`BACKEND: Rate limit initialized for user ${userId}: 1/${this.RATE_LIMIT_MAX_REQUESTS}`);
+      return;
+    }
+
+    if (userLimit.count >= this.RATE_LIMIT_MAX_REQUESTS) {
+      const waitSeconds = Math.ceil((userLimit.resetAt - now) / 1000);
+      logger.error(`BACKEND: Rate limit exceeded for user ${userId}`);
+      throw new Error(`Rate limit exceeded. Please wait ${waitSeconds} seconds before trying again.`);
+    }
+
+    userLimit.count++;
+    logger.debug(`BACKEND: Rate limit check passed for user ${userId}: ${userLimit.count}/${this.RATE_LIMIT_MAX_REQUESTS}`);
   }
 
   // Logs the AI interaction to Firestore for monitoring
@@ -60,16 +83,16 @@ class BackendService {
     user: User | null,
     type: 'generate',
     request: { query: string; template: string; contextLength: number },
-    response: { textLength: number; success: boolean; error?: string; fullText?: string },
+    response: { textLength: number; success: boolean; error?: string },
     metadata: { model: string; durationMs: number }
   ): Promise<void> {
     try {
       if (!user) {
-        console.error("BACKEND: Cannot log AI interaction - User is null");
+        logger.error("BACKEND: Cannot log AI interaction - User is null");
         return;
       }
 
-      console.log("BACKEND: Attempting to log AI interaction for user:", user.uid);
+      logger.debug("BACKEND: Attempting to log AI interaction for user:", user.uid);
       const logsCollection = collection(db, 'ai_logs');
       await addDoc(logsCollection, {
         userId: user.uid,
@@ -79,9 +102,9 @@ class BackendService {
         response,
         metadata
       });
-      console.log("BACKEND: Logging AI interaction to 'ai_logs' collection.");
+      logger.debug("BACKEND: Logging AI interaction to 'ai_logs' collection.");
     } catch (error) {
-      console.error("BACKEND: Failed to log AI interaction:", error);
+      logger.error("BACKEND: Failed to log AI interaction:", error);
     }
   }
 
@@ -96,6 +119,18 @@ class BackendService {
     onProgress?: (step: string) => void,
     signal?: AbortSignal
   ): Promise<void> {
+    // SECURITY: Authenticate and check rate limit
+    const uid = this._authenticate(user);
+    this._checkRateLimit(uid);
+
+    // SECURITY: Validate input
+    try {
+      ChatQuerySchema.parse({ query, resourceIds: [], conversationHistory: [] });
+    } catch (error) {
+      logger.error('BACKEND: Input validation failed:', error);
+      throw new Error('Invalid query. Please check your input and try again.');
+    }
+
     const startTime = Date.now();
     const modelName = 'gemini-2.5-flash';
 
@@ -122,20 +157,20 @@ class BackendService {
       const systemInstruction = `You are a helpful assistant. Based on the provided context, write a brief 2-3 sentence introduction to answer the user's question. Keep it concise and engaging.\n\n${resourceContext}`;
       const fullPrompt = `USER QUERY: "${query}"\n\nProvide a brief introduction (2-3 sentences) that addresses this query.`;
 
-      const response = await ai.models.generateContentStream({
+      // SECURITY: Using Firebase AI - API key stays server-side
+      const model = getGenerativeModel(ai, {
         model: modelName,
-        contents: fullPrompt,
-        config: {
-          systemInstruction: systemInstruction,
-        },
+        systemInstruction: systemInstruction,
       });
 
+      const response = await model.generateContentStream(fullPrompt);
+
       let fullResponse = '';
-      for await (const chunk of response) {
+      for await (const chunk of response.stream) {
         if (signal?.aborted) {
           throw new Error('Generation was stopped.');
         }
-        const text = chunk.text || "";
+        const text = chunk.text();
         fullResponse += text;
         if (text) {
           onChunk(text);
@@ -143,10 +178,10 @@ class BackendService {
       }
 
       const duration = Date.now() - startTime;
-      console.log(`📊 INTRO: Generated in ${duration}ms (${fullResponse.length} chars)`);
+      logger.debug(`📊 INTRO: Generated in ${duration}ms (${fullResponse.length} chars)`);
 
     } catch (error) {
-      console.error("BACKEND: Error generating intro:", error);
+      logger.error("BACKEND: Error generating intro:", error);
       throw error;
     }
   }
@@ -164,8 +199,25 @@ class BackendService {
     sessionId?: string,
     onProgress?: (step: string) => void
   ): Promise<void> {
-    console.log("BACKEND: Received generate stream request.");
-    console.log("BACKEND: User authenticated with UID:", this._authenticate(user));
+    logger.debug("BACKEND: Received generate stream request.");
+    // SECURITY: Authenticate and check rate limit
+    const uid = this._authenticate(user);
+    this._checkRateLimit(uid);
+
+    // SECURITY: Validate input to prevent malicious/oversized requests
+    try {
+      ChatQuerySchema.parse({
+        query,
+        resourceIds: selectedResourceIds,
+        conversationHistory: conversationHistory.map(h => ({
+          role: 'user' as const,
+          content: h.query + h.response
+        }))
+      });
+    } catch (error) {
+      logger.error('BACKEND: Input validation failed:', error);
+      throw new Error('Invalid input. Please check your query and try again.');
+    }
 
     const startTime = Date.now();
     let fullResponseText = "";
@@ -187,7 +239,7 @@ class BackendService {
       // Fetch knowledge resources
       onProgress?.('Loading knowledge base...');
       const allResources = await this.getKnowledge();
-      console.log(`BACKEND: Loaded ${allResources.length} total resources`);
+      logger.debug(`BACKEND: Loaded ${allResources.length} total resources`);
 
       // Step 1: Use titles to find most relevant resources
       // Reduced from 24 to 15 for faster TTFR (less context = faster Gemini processing)
@@ -197,15 +249,15 @@ class BackendService {
       queryKeywords = selectionResult.metrics.queryKeywords;
       topLibraryScores = selectionResult.metrics.topLibraryScores;
       topRoadmapScores = selectionResult.metrics.topRoadmapScores;
-      console.log(`BACKEND: Selected ${relevantResources.length} relevant resources based on titles`);
+      logger.debug(`BACKEND: Selected ${relevantResources.length} relevant resources based on titles`);
 
       // Log breakdown of selected resources by type
       const selectedLibraryCount = relevantResources.filter(r => r.contentType === 'library').length;
       const selectedRoadmapCount = relevantResources.filter(r => r.contentType === 'roadmap').length;
-      console.log(`BACKEND: Selected resources breakdown: ${selectedLibraryCount} library, ${selectedRoadmapCount} roadmap`);
+      logger.debug(`BACKEND: Selected resources breakdown: ${selectedLibraryCount} library, ${selectedRoadmapCount} roadmap`);
 
       if (selectedRoadmapCount === 0) {
-        console.warn('BACKEND: WARNING - No roadmap resources selected! Roadmap content will not be available for citations.');
+        logger.warn('BACKEND: WARNING - No roadmap resources selected! Roadmap content will not be available for citations.');
       }
 
       // Build context from only the relevant resources - include ID for reliable citation linking
@@ -222,16 +274,18 @@ class BackendService {
 
         // Log if resource has no content (especially important for roadmap)
         if (!content && r.contentType === 'roadmap') {
-          console.warn(`BACKEND: WARNING - Roadmap resource has NO CONTENT: "${r.title}" (${r.id})`);
+          logger.warn(`BACKEND: WARNING - Roadmap resource has NO CONTENT: "${r.title}" (${r.id})`);
         }
-        return `## [${r.id}] ${r.title}\n\n${content}`;
+        // Use wpPostId for modal compatibility (numeric ID for citation matching)
+        const resourceId = r.wpPostId || r.id;
+        return `## [${resourceId}] ${r.title}\n\n${content}`;
       }).join('\n\n');
 
       // Check if any roadmap resources have actual content
       const roadmapWithContent = relevantResources.filter(r =>
         r.contentType === 'roadmap' && (r.description || r.summary)
       ).length;
-      console.log(`BACKEND: Roadmap resources with content: ${roadmapWithContent}/${selectedRoadmapCount}`);
+      logger.debug(`BACKEND: Roadmap resources with content: ${roadmapWithContent}/${selectedRoadmapCount}`);
 
       // Build conversation history context (limit to last 3 exchanges to save tokens)
       const recentHistory = conversationHistory.slice(-3);
@@ -250,41 +304,41 @@ class BackendService {
       const roadmapSection = enableRoadmap ? ROADMAP_PROMPT : '';
       const systemInstruction = `${SYSTEM_PROMPT_START}\n\n${context}\n\n${SYSTEM_PROMPT_END}${roadmapSection}`;
 
-      console.log("BACKEND: enableRoadmap (UI toggle) =", enableRoadmap);
-      console.log("BACKEND: Roadmap section included:", enableRoadmap ? "YES" : "NO");
-      console.log("BACKEND: Context length:", context.length);
-      console.log("BACKEND: System instruction length:", systemInstruction.length);
+      logger.debug("BACKEND: enableRoadmap (UI toggle) =", enableRoadmap);
+      logger.debug("BACKEND: Roadmap section included:", enableRoadmap ? "YES" : "NO");
+      logger.debug("BACKEND: Context length:", context.length);
+      logger.debug("BACKEND: System instruction length:", systemInstruction.length);
 
       onProgress?.(`Selected ${relevantResources.length} relevant sources`);
       onProgress?.(`Building context (${Math.round(context.length / 1000)}KB)...`);
       onProgress?.(`Processing your query...`);
 
-      console.log("BACKEND: Starting streaming request to Gemini...");
+      logger.debug("BACKEND: Starting streaming request to Gemini...");
 
-      const response = await ai.models.generateContentStream({
+      // SECURITY: Using Firebase AI - API key stays server-side
+      const model = getGenerativeModel(ai, {
         model: modelName,
-        contents: fullPrompt,
-        config: {
-          systemInstruction: systemInstruction,
-        },
+        systemInstruction: systemInstruction,
       });
 
-      console.log("BACKEND: Successfully started streaming content.");
+      const response = await model.generateContentStream(fullPrompt);
+
+      logger.debug("BACKEND: Successfully started streaming content.");
       onProgress?.('AI responded. Streaming answer...');
       streamingStartTime = Date.now();
       let chunkCount = 0;
       let lastChunk: any = null;
 
-      for await (const chunk of response) {
+      for await (const chunk of response.stream) {
         // Check for abort signal
         if (signal?.aborted) {
-          console.log("BACKEND: Generation aborted by user");
+          logger.debug("BACKEND: Generation aborted by user");
           throw new Error('Generation was stopped.');
         }
 
         chunkCount++;
         lastChunk = chunk; // Capture last chunk (has usageMetadata)
-        const text = chunk.text || "";
+        const text = chunk.text();
         fullResponseText += text;
 
         // Capture first chunk time
@@ -296,7 +350,7 @@ class BackendService {
           onChunk(text);
         }
       }
-      console.log(`BACKEND: Stream finished. Total chunks: ${chunkCount}`);
+      logger.debug(`BACKEND: Stream finished. Total chunks: ${chunkCount}`);
 
       // Extract token counts from last chunk's usageMetadata
       const usageMetadata = lastChunk?.usageMetadata;
@@ -305,17 +359,17 @@ class BackendService {
       const thoughtTokens = usageMetadata?.thoughtsTokenCount || 0;
       const totalTokens = usageMetadata?.totalTokenCount || 0;
 
-      console.log(`📊 BACKEND: Input tokens: ${inputTokens}`);
-      console.log(`📊 BACKEND: Output tokens: ${outputTokens}`);
-      console.log(`📊 BACKEND: Thought tokens: ${thoughtTokens}`);
-      console.log(`📊 BACKEND: Total tokens: ${totalTokens}`);
-      console.log(`📊 BACKEND: Token counts:`, { input: inputTokens, output: outputTokens, thought: thoughtTokens, total: totalTokens });
+      logger.debug(`📊 BACKEND: Input tokens: ${inputTokens}`);
+      logger.debug(`📊 BACKEND: Output tokens: ${outputTokens}`);
+      logger.debug(`📊 BACKEND: Thought tokens: ${thoughtTokens}`);
+      logger.debug(`📊 BACKEND: Total tokens: ${totalTokens}`);
+      logger.debug(`📊 BACKEND: Token counts:`, { input: inputTokens, output: outputTokens, thought: thoughtTokens, total: totalTokens });
 
       // Log success
       const durationMs = Date.now() - startTime;
       await this._logAIInteraction(user, 'generate',
         { query, template, contextLength: context.length },
-        { textLength: fullResponseText.length, success: true, fullText: fullResponseText },
+        { textLength: fullResponseText.length, success: true},
         { model: modelName, durationMs }
       );
 
@@ -369,6 +423,13 @@ class BackendService {
             wasAborted: false,
             hadErrors: false,
           },
+          source: captureSourceInfo(WIDGET_VERSION),
+          promptConfig: createPromptConfig(
+            `${WIDGET_VERSION}-single-phase`,
+            'single-phase',
+            template,
+            enableRoadmap ? ['roadmap', 'citations'] : ['citations']
+          ),
         });
       }
 
@@ -415,18 +476,25 @@ class BackendService {
             wasAborted: true,
             hadErrors: false,
           },
+          source: captureSourceInfo(WIDGET_VERSION),
+          promptConfig: createPromptConfig(
+            `${WIDGET_VERSION}-single-phase`,
+            'single-phase',
+            template,
+            enableRoadmap ? ['roadmap', 'citations'] : ['citations']
+          ),
         });
         throw error;
       }
 
-      console.error("BACKEND: Error generating content:", error);
+      logger.error("BACKEND: Error generating content:", error);
 
       // Log failure
       const durationMs = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : String(error);
       await this._logAIInteraction(user, 'generate',
         { query, template, contextLength: 0 },
-        { textLength: fullResponseText.length, success: false, error: errorMessage, fullText: fullResponseText },
+        { textLength: fullResponseText.length, success: false, error: errorMessage},
         { model: modelName, durationMs }
       );
 
@@ -471,6 +539,13 @@ class BackendService {
             wasAborted: false,
             hadErrors: true,
           },
+          source: captureSourceInfo(WIDGET_VERSION),
+          promptConfig: createPromptConfig(
+            `${WIDGET_VERSION}-single-phase`,
+            'single-phase',
+            template,
+            enableRoadmap ? ['roadmap', 'citations'] : ['citations']
+          ),
         });
       }
 
@@ -483,7 +558,7 @@ class BackendService {
 
   // Saves an output to the user's collection in Firestore
   async saveOutput(outputData: Omit<SavedOutput, 'id' | 'timestamp'>, user: User | null): Promise<SavedOutput> {
-    console.log("BACKEND: Received save request.");
+    logger.debug("BACKEND: Received save request.");
     const uid = this._authenticate(user);
 
     const userOutputsCollection = collection(db, 'users', uid, 'outputs');
@@ -494,14 +569,14 @@ class BackendService {
     };
 
     const docRef = await addDoc(userOutputsCollection, newDocument);
-    console.log("BACKEND: Saved new output to Firestore with ID:", docRef.id);
+    logger.debug("BACKEND: Saved new output to Firestore with ID:", docRef.id);
 
     return { ...newDocument, id: docRef.id, timestamp: new Date().toISOString() };
   }
 
   // Retrieves all outputs for a user from Firestore
   async getOutputs(user: User | null): Promise<SavedOutput[]> {
-    console.log("BACKEND: Received request to get all outputs.");
+    logger.debug("BACKEND: Received request to get all outputs.");
     const uid = this._authenticate(user);
 
     const userOutputsCollection = collection(db, 'users', uid, 'outputs');
@@ -514,7 +589,7 @@ class BackendService {
       timestamp: doc.data().timestamp.toDate().toISOString(),
     } as SavedOutput));
 
-    console.log(`BACKEND: Returning ${outputs.length} outputs from Firestore.`);
+    logger.debug(`BACKEND: Returning ${outputs.length} outputs from Firestore.`);
     return outputs;
   }
 
@@ -523,7 +598,7 @@ class BackendService {
     'original': 'knowledgeBase',
     'wordpress': 'knowledgebase_wp',
     'htg_library': 'knowledgebase_htg',
-    'timestamped': 'knowledgebase_wp_2026-01-16T10-05-04',
+    'timestamped': 'knowledgebase_wp_2026-03-06',
   };
 
   /**
@@ -532,7 +607,7 @@ class BackendService {
   clearKnowledgeCache(): void {
     this.knowledgeCache = null;
     this.knowledgeCacheTimestamp = 0;
-    console.log('BACKEND: Knowledge cache cleared');
+    logger.debug('BACKEND: Knowledge cache cleared');
   }
 
   /**
@@ -543,7 +618,7 @@ class BackendService {
     const age = Date.now() - this.knowledgeCacheTimestamp;
     const isValid = age < this.CACHE_TTL_MS;
     if (!isValid && this.knowledgeCache) {
-      console.log(`BACKEND: Cache expired (age: ${Math.round(age / 1000)}s, TTL: ${this.CACHE_TTL_MS / 1000}s)`);
+      logger.debug(`BACKEND: Cache expired (age: ${Math.round(age / 1000)}s, TTL: ${this.CACHE_TTL_MS / 1000}s)`);
     }
     return isValid;
   }
@@ -552,34 +627,108 @@ class BackendService {
   async getKnowledge(source: 'original' | 'wordpress' = 'original'): Promise<Resource[]> {
     // Check cache first
     if (this.isCacheValid()) {
-      console.log(`BACKEND: Using cached knowledge (${this.knowledgeCache!.length} resources, age: ${Math.round((Date.now() - this.knowledgeCacheTimestamp) / 1000)}s)`);
+      logger.debug(`BACKEND: Using cached knowledge (${this.knowledgeCache!.length} resources, age: ${Math.round((Date.now() - this.knowledgeCacheTimestamp) / 1000)}s)`);
       return this.knowledgeCache!;
     }
 
     const fetchStartTime = Date.now();
     let collectionName: string;
 
-    // Try to read from active_dataset config for dynamic collection selection
-    try {
-      const configRef = doc(db, 'knowledgebase_config', 'active_dataset');
-      const configDoc = await getDoc(configRef);
-
-      if (configDoc.exists()) {
-        const configData = configDoc.data();
-        collectionName = configData.collectionName;
-        console.log(`BACKEND: Using active_dataset config collection: '${collectionName}'`);
-      } else {
-        // Fallback to timestamped collection
-        collectionName = 'knowledgebase_wp_2026-01-16T10-05-04';
-        console.log(`BACKEND: No active_dataset config found, using fallback: '${collectionName}'`);
-      }
-    } catch (error) {
-      console.warn(`BACKEND: Error reading active_dataset config:`, error);
-      collectionName = 'knowledgebase_wp_2026-01-16T10-05-04';
-      console.log(`BACKEND: Using fallback collection due to error: '${collectionName}'`);
+    // Cleanup: Check if page has staging mode, clear flag if not
+    const pageHasStagingMode = document.querySelector('[data-staging-mode="true"]') !== null;
+    const storedStagingMode = localStorage.getItem('navi_staging_mode') === 'true';
+    if (!pageHasStagingMode && storedStagingMode) {
+      logger.debug('BACKEND: Clearing staging mode flag (page does not have data-staging-mode)');
+      localStorage.removeItem('navi_staging_mode');
     }
 
-    console.log(`BACKEND: Fetching knowledge from '${collectionName}' (cache miss)`);
+    // Check for staging mode — also treat non-production domains as staging
+    const isProductionDomain = typeof window !== 'undefined' && window.location.hostname === 'navigator.dimesociety.org';
+    const isStaging = !isProductionDomain || (localStorage.getItem('navi_staging_mode') === 'true' && pageHasStagingMode);
+
+    // Try to read collection name based on staging/production mode
+    try {
+      if (isStaging) {
+        // STAGING MODE: Check for collection override from data attribute first
+        logger.debug('🚀 BACKEND: STAGING MODE ENABLED');
+
+        const stagingContainer = document.querySelector('[data-staging-collection]');
+        const overrideCollection = stagingContainer?.getAttribute('data-staging-collection');
+
+        if (overrideCollection) {
+          collectionName = overrideCollection;
+          logger.debug(`🚀 STAGING MODE: Using collection from data-staging-collection attribute: '${collectionName}'`);
+        } else {
+          try {
+            // Try reading from active_collections document
+            const activeCollectionsRef = doc(db, 'knowledgebase_config', 'active_collections');
+            const activeCollectionsDoc = await getDoc(activeCollectionsRef);
+
+            if (activeCollectionsDoc.exists()) {
+              const activeCollectionsData = activeCollectionsDoc.data();
+              const stagingCollection = activeCollectionsData.staging || activeCollectionsData.latest;
+
+              if (stagingCollection) {
+                collectionName = stagingCollection;
+                logger.debug(`🚀 STAGING MODE: Using staging collection from active_collections: '${collectionName}'`);
+              } else {
+                throw new Error('No staging collection found in active_collections');
+              }
+            } else {
+              throw new Error('active_collections document does not exist');
+            }
+          } catch (stagingError) {
+            logger.warn('🚀 STAGING MODE: Could not read from active_collections, falling back to active_dataset:', stagingError);
+
+            // Fallback: Use active_dataset (production collection) in staging mode
+            const configRef = doc(db, 'knowledgebase_config', 'active_dataset');
+            const configDoc = await getDoc(configRef);
+
+            if (configDoc.exists()) {
+              const configData = configDoc.data();
+              collectionName = configData.collectionName;
+              logger.debug(`🚀 STAGING MODE (FALLBACK): Using active_dataset collection: '${collectionName}'`);
+            } else {
+              collectionName = 'knowledgebase_wp_2026-03-06';
+              logger.debug(`🚀 STAGING MODE (FALLBACK): Using hardcoded fallback: '${collectionName}'`);
+            }
+          }
+        }
+      } else {
+        // PRODUCTION MODE: Use active_dataset
+        const configRef = doc(db, 'knowledgebase_config', 'active_dataset');
+        const configDoc = await getDoc(configRef);
+
+        if (configDoc.exists()) {
+          const configData = configDoc.data();
+          collectionName = configData.collectionName;
+          logger.debug(`BACKEND: Using active_dataset config collection: '${collectionName}'`);
+        } else {
+          // Try reading from active_collections.production as backup
+          try {
+            const activeCollectionsRef = doc(db, 'knowledgebase_config', 'active_collections');
+            const activeCollectionsDoc = await getDoc(activeCollectionsRef);
+
+            if (activeCollectionsDoc.exists()) {
+              const activeCollectionsData = activeCollectionsDoc.data();
+              collectionName = activeCollectionsData.production || 'knowledgebase_wp_2026-03-06';
+              logger.debug(`BACKEND: Using production collection from active_collections: '${collectionName}'`);
+            } else {
+              throw new Error('No active_dataset or active_collections found');
+            }
+          } catch (backupError) {
+            // Fallback to timestamped collection
+            collectionName = 'knowledgebase_wp_2026-03-06';
+            logger.debug(`BACKEND: No active_dataset config found, using fallback: '${collectionName}'`);
+          }
+        }
+      }
+    } catch (error) {
+      logger.warn(`BACKEND: Error reading collection config:`, error);
+      collectionName = 'knowledgebase_wp_2026-03-06';
+      logger.debug(`BACKEND: Using fallback collection due to error: '${collectionName}'`);
+    }
+    logger.debug(`BACKEND: Fetching knowledge from '${collectionName}' (cache miss)`);
 
     const knowledgeCollection = collection(db, collectionName);
     const querySnapshot = await getDocs(knowledgeCollection);
@@ -609,18 +758,20 @@ class BackendService {
         // Use calculated contentType based on URL (override Firestore value)
         contentType: calculatedContentType,
         url: data.url || undefined,
+        wpPostId: data.wpPostId || undefined,
+        citationId: data.citationId || undefined,
       } as Resource;
     });
 
     // Count by contentType for debugging
     const libraryCount = knowledge.filter(r => r.contentType === 'library').length;
     const roadmapCount = knowledge.filter(r => r.contentType === 'roadmap').length;
-    console.log(`BACKEND: Returning ${knowledge.length} knowledge resources from '${collectionName}' (${libraryCount} library, ${roadmapCount} roadmap).`);
+    logger.debug(`BACKEND: Returning ${knowledge.length} knowledge resources from '${collectionName}' (${libraryCount} library, ${roadmapCount} roadmap).`);
 
     // Log sample of each type for verification
     if (roadmapCount > 0) {
       const sampleRoadmap = knowledge.find(r => r.contentType === 'roadmap');
-      console.log('BACKEND: Sample roadmap resource:', {
+      logger.debug('BACKEND: Sample roadmap resource:', {
         title: sampleRoadmap?.title,
         url: sampleRoadmap?.url,
         contentType: sampleRoadmap?.contentType
@@ -628,7 +779,7 @@ class BackendService {
     }
     if (libraryCount > 0) {
       const sampleLibrary = knowledge.find(r => r.contentType === 'library');
-      console.log('BACKEND: Sample library resource:', {
+      logger.debug('BACKEND: Sample library resource:', {
         title: sampleLibrary?.title,
         url: sampleLibrary?.url,
         contentType: sampleLibrary?.contentType
@@ -643,7 +794,7 @@ class BackendService {
     this.knowledgeCache = knowledge;
     this.knowledgeCacheTimestamp = Date.now();
     const fetchDuration = Date.now() - fetchStartTime;
-    console.log(`BACKEND: Knowledge cached (fetch took ${fetchDuration}ms)`);
+    logger.debug(`BACKEND: Knowledge cached (fetch took ${fetchDuration}ms)`);
 
     return knowledge;
   }
@@ -667,14 +818,14 @@ class BackendService {
    * @param enabledSources - Array of source keys to include (e.g., ['original', 'htg_library'])
    */
   async getKnowledgeMultiSource(enabledSources: string[]): Promise<Resource[]> {
-    console.log(`BACKEND: Fetching knowledge from sources: ${enabledSources.join(', ')}`);
+    logger.debug(`BACKEND: Fetching knowledge from sources: ${enabledSources.join(', ')}`);
 
     const allResources: Resource[] = [];
 
     for (const sourceKey of enabledSources) {
       const collectionName = this.knowledgeSourceCollections[sourceKey];
       if (!collectionName) {
-        console.warn(`BACKEND: Unknown knowledge source: ${sourceKey}`);
+        logger.warn(`BACKEND: Unknown knowledge source: ${sourceKey}`);
         continue;
       }
 
@@ -701,20 +852,22 @@ class BackendService {
             summary: decodeHtmlEntities(data.summary || ''),
             tags: data.tags || [],
             group: data.group || 'General',
+            wpPostId: data.wpPostId,
             category: data.category || undefined,
             contentType: calculatedContentType,
             url: data.url || undefined,
+            citationId: data.citationId || undefined,
           } as Resource;
         });
 
-        console.log(`BACKEND: Loaded ${sourceResources.length} resources from '${sourceKey}'`);
+        logger.debug(`BACKEND: Loaded ${sourceResources.length} resources from '${sourceKey}'`);
         allResources.push(...sourceResources);
       } catch (error) {
-        console.error(`BACKEND: Error loading ${sourceKey}:`, error);
+        logger.error(`BACKEND: Error loading ${sourceKey}:`, error);
       }
     }
 
-    console.log(`BACKEND: Total resources from all sources: ${allResources.length}`);
+    logger.debug(`BACKEND: Total resources from all sources: ${allResources.length}`);
     return allResources;
   }
 
@@ -728,7 +881,7 @@ class BackendService {
     resourceCount: number;
     enabled: boolean;
   }>> {
-    console.log('BACKEND: Fetching available knowledge sources...');
+    logger.debug('BACKEND: Fetching available knowledge sources...');
 
     const sources = [
       { key: 'original', name: 'Original Knowledge Base', enabled: true },
@@ -757,13 +910,13 @@ class BackendService {
       }
     }
 
-    console.log(`BACKEND: Found ${result.length} knowledge sources`);
+    logger.debug(`BACKEND: Found ${result.length} knowledge sources`);
     return result;
   }
 
   // Saves a chat to history
   async saveChatHistory(chatData: Omit<ChatHistory, 'id' | 'timestamp'>, user: User | null): Promise<ChatHistory> {
-    console.log("BACKEND: Received save chat history request.");
+    logger.debug("BACKEND: Received save chat history request.");
     const uid = this._authenticate(user);
 
     const userChatsCollection = collection(db, 'users', uid, 'chatHistory');
@@ -774,14 +927,14 @@ class BackendService {
     };
 
     const docRef = await addDoc(userChatsCollection, newDocument);
-    console.log("BACKEND: Saved chat to history with ID:", docRef.id);
+    logger.debug("BACKEND: Saved chat to history with ID:", docRef.id);
 
     return { ...newDocument, id: docRef.id, timestamp: new Date().toISOString() };
   }
 
   // Retrieves chat history for a user
   async getChatHistory(user: User | null): Promise<ChatHistory[]> {
-    console.log("BACKEND: Received request to get chat history.");
+    logger.debug("BACKEND: Received request to get chat history.");
     const uid = this._authenticate(user);
 
     const userChatsCollection = collection(db, 'users', uid, 'chatHistory');
@@ -794,23 +947,23 @@ class BackendService {
       timestamp: doc.data().timestamp.toDate().toISOString(),
     } as ChatHistory));
 
-    console.log(`BACKEND: Returning ${chats.length} chats from history.`);
+    logger.debug(`BACKEND: Returning ${chats.length} chats from history.`);
     return chats;
   }
 
   // Deletes an output from the user's collection in Firestore
   async deleteOutput(outputId: string, user: User | null): Promise<void> {
-    console.log("BACKEND: Received delete request for output:", outputId);
+    logger.debug("BACKEND: Received delete request for output:", outputId);
     const uid = this._authenticate(user);
 
     const outputDocRef = doc(db, 'users', uid, 'outputs', outputId);
     await deleteDoc(outputDocRef);
-    console.log("BACKEND: Deleted output with ID:", outputId);
+    logger.debug("BACKEND: Deleted output with ID:", outputId);
   }
 
   // Saves bookmarked resources for a user
   async saveBookmarks(bookmarks: BookmarkedResource[], user: User | null): Promise<void> {
-    console.log("BACKEND: Received save bookmarks request.");
+    logger.debug("BACKEND: Received save bookmarks request.");
     const uid = this._authenticate(user);
 
     // Use a single document to store all bookmarks for the user
@@ -819,25 +972,25 @@ class BackendService {
       bookmarks,
       updatedAt: serverTimestamp(),
     });
-    console.log(`BACKEND: Saved ${bookmarks.length} bookmarks for user.`);
+    logger.debug(`BACKEND: Saved ${bookmarks.length} bookmarks for user.`);
   }
 
   // Retrieves bookmarked resources for a user
   async getBookmarks(user: User | null): Promise<BookmarkedResource[]> {
-    console.log("BACKEND: Received request to get bookmarks.");
+    logger.debug("BACKEND: Received request to get bookmarks.");
     const uid = this._authenticate(user);
 
     const bookmarksDocRef = doc(db, 'users', uid, 'bookmarks', 'saved');
     const bookmarksDoc = await getDoc(bookmarksDocRef);
 
     if (!bookmarksDoc.exists()) {
-      console.log("BACKEND: No bookmarks found for user.");
+      logger.debug("BACKEND: No bookmarks found for user.");
       return [];
     }
 
     const data = bookmarksDoc.data();
     const bookmarks = (data.bookmarks || []) as BookmarkedResource[];
-    console.log(`BACKEND: Returning ${bookmarks.length} bookmarks.`);
+    logger.debug(`BACKEND: Returning ${bookmarks.length} bookmarks.`);
     return bookmarks;
   }
 
@@ -855,16 +1008,23 @@ class BackendService {
       topRoadmapScores: Array<{ score: number; title: string }>;
     };
   }> {
-    console.log(`BACKEND: Selecting top ${maxResources} relevant resources from ${allResources.length} total`);
+    logger.debug(`BACKEND: Selecting top ${maxResources} relevant resources from ${allResources.length} total`);
 
     if (allResources.length <= maxResources) {
-      return allResources;
+      return {
+        resources: allResources,
+        metrics: {
+          queryKeywords: [],
+          topLibraryScores: [],
+          topRoadmapScores: []
+        }
+      };
     }
 
     // Split into library and roadmap resources
     const libraryResources = allResources.filter(r => r.contentType === 'library');
     const roadmapResources = allResources.filter(r => r.contentType === 'roadmap');
-    console.log(`BACKEND: Resource pool: ${libraryResources.length} library, ${roadmapResources.length} roadmap`);
+    logger.debug(`BACKEND: Resource pool: ${libraryResources.length} library, ${roadmapResources.length} roadmap`);
 
     // Extract keywords from query (lowercase, remove common words)
     const stopWords = new Set(['a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
@@ -884,7 +1044,7 @@ class BackendService {
       .split(/\s+/)
       .filter(word => word.length > 2 && !stopWords.has(word));
 
-    console.log('BACKEND: Query keywords:', queryWords.join(', '));
+    logger.debug('BACKEND: Query keywords:', queryWords.join(', '));
 
     // Score each resource based on keyword matches in title and tags
     const scored = allResources.map((resource, index) => {
@@ -929,7 +1089,7 @@ class BackendService {
     const librarySlots = Math.ceil(maxResources * 0.67);
     const roadmapSlots = maxResources - librarySlots;
 
-    console.log(`BACKEND: Allocating ${librarySlots} slots for library, ${roadmapSlots} slots for roadmap`);
+    logger.debug(`BACKEND: Allocating ${librarySlots} slots for library, ${roadmapSlots} slots for roadmap`);
 
     // Sort each type by score and take top N
     scoredLibrary.sort((a, b) => b.score - a.score);
@@ -941,9 +1101,9 @@ class BackendService {
     // Combine selections
     const selected = [...selectedLibrary, ...selectedRoadmap];
 
-    console.log(`BACKEND: Top library scores: ${selectedLibrary.slice(0, 3).map(s => `${s.score}:${(s.resource.title || 'Untitled').slice(0, 30)}`).join(', ')}`);
-    console.log(`BACKEND: Top roadmap scores: ${selectedRoadmap.slice(0, 3).map(s => `${s.score}:${(s.resource.title || 'Untitled').slice(0, 30)}`).join(', ')}`);
-    console.log(`BACKEND: Selected ${selected.length} resources (${selectedLibrary.length} library, ${selectedRoadmap.length} roadmap)`);
+    logger.debug(`BACKEND: Top library scores: ${selectedLibrary.slice(0, 3).map(s => `${s.score}:${(s.resource.title || 'Untitled').slice(0, 30)}`).join(', ')}`);
+    logger.debug(`BACKEND: Top roadmap scores: ${selectedRoadmap.slice(0, 3).map(s => `${s.score}:${(s.resource.title || 'Untitled').slice(0, 30)}`).join(', ')}`);
+    logger.debug(`BACKEND: Selected ${selected.length} resources (${selectedLibrary.length} library, ${selectedRoadmap.length} roadmap)`);
 
     // Return resources and metrics
     return {

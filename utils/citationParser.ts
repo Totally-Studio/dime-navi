@@ -1,7 +1,9 @@
 import { Resource } from '../types';
+import { logger } from './logger';
 
 export interface Citation {
   id: number;
+  displayId: string;  // Display label: e.g., "1", "3a", "2.1b"
   title: string;
   resource: Resource | null;
   alternates: Resource[]; // Up to 3 if no exact match
@@ -42,58 +44,115 @@ function decodeHtmlEntities(text: string): string {
 }
 
 /**
+ * Generate a citation display suffix based on query index.
+ *
+ * Scheme:
+ *   Query 0:  ""       → citations: 1, 2, 3
+ *   Query 1:  "a"      → citations: 1a, 2a, 3a
+ *   Query 2:  "b"      → citations: 1b, 2b, 3b
+ *   ...
+ *   Query 26: "z"      → citations: 1z, 2z, 3z
+ *   Query 27: "2."+""  → citations: 2.1, 2.2, 2.3
+ *   Query 28: "2."+"a" → citations: 2.1a, 2.2a
+ *   ...
+ *   Query 53: "2."+"z" → citations: 2.1z, 2.2z
+ *   Query 54: "3."+""  → citations: 3.1, 3.2
+ *   etc.
+ */
+function getQuerySuffix(queryIndex: number): { prefix: string; suffix: string } {
+  if (queryIndex === 0) {
+    return { prefix: '', suffix: '' };
+  }
+
+  // Cycle of 27: first query in cycle has no letter suffix, rest have a-z
+  const cycle = Math.floor((queryIndex - 1) / 26);  // 0 for queries 1-26, 1 for 27-52, etc.
+  const posInCycle = (queryIndex - 1) % 26;          // 0-25
+
+  const suffix = String.fromCharCode(97 + posInCycle); // a-z
+  const prefix = cycle === 0 ? '' : `${cycle + 1}.`;
+
+  return { prefix, suffix };
+}
+
+export interface ParseOptions {
+  usePermanentIds?: boolean;
+  queryIndex?: number; // 0-based index of which query this is in the session
+}
+
+/**
  * Parses response text for citations and matches them to resources
  * Supports formats:
  * - [Source:ID:Title] - new format with resource ID for guaranteed matching
  * - [Source: Title] - legacy format with title-based matching
  * @param text - The response text containing citations
  * @param resources - Available resources to match against
+ * @param options - Parse options including queryIndex for session-unique IDs
  * @returns ParsedResponse with citation markers and matched resources
  */
-export function parseCitations(text: string, resources: Resource[]): ParsedResponse {
-  // Build a map of resource IDs for quick lookup
-  const resourceById = new Map<string, Resource>();
-  resources.forEach(r => resourceById.set(r.id, r));
+export function parseCitations(text: string, resources: Resource[], options?: ParseOptions): ParsedResponse {
+  const usePermanentIds = options?.usePermanentIds ?? false;
+  const queryIndex = options?.queryIndex ?? 0;
+  const { prefix, suffix } = getQuerySuffix(queryIndex);
 
-  // Regex to match both formats:
-  // [Source:ID:Title] - new format with ID
-  // [Source: Title] - legacy format
-  const citationRegex = /\[Source:([^:\]]+):([^\]]+)\]|\[Source:\s*([^\]]+)\]/gi;
+  const viewport = typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown';
+  const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 700;
+  logger.debug(`[CitationParser] Starting parse - Viewport: ${viewport} (mobile: ${isMobileViewport}), Resources: ${resources.length}, QueryIndex: ${queryIndex}`);
+
+  // Build a map of resource IDs for quick lookup (support multiple ID formats)
+  const resourceById = new Map<string, Resource>();
+  resources.forEach(r => {
+    resourceById.set(r.id, r);
+    if (r.wpPostId) {
+      const postIdStr = String(r.wpPostId);
+      resourceById.set(postIdStr, r);
+      const contentType = r.contentType || 'library';
+      resourceById.set(`wp_${contentType}_${postIdStr}`, r);
+    }
+  });
+
+  if (isMobileViewport && resourceById.size > 0) {
+    logger.debug(`[CitationParser MOBILE] Mapped ${resourceById.size} resource keys. Sample:`, Array.from(resourceById.keys()).slice(0, 10));
+  }
+
+  const citationRegex = /\[Source:\s*([^:\]]+):([^\]]+)\]|\[Source:\s*([^\]]+)\]/gi;
   const foundCitations: Map<string, Citation> = new Map();
   let citationCounter = 0;
 
-  // Find all citations and match to resources
   let match;
   while ((match = citationRegex.exec(text)) !== null) {
+    const viewport = typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown';
+    logger.debug(`[CitationParser ${viewport}] Raw citation match: "${match[0]}"`, {
+      fullMatch: match[0],
+      group1_ID: match[1] || 'undefined',
+      group2_Title: match[2] || 'undefined',
+      group3_LegacyTitle: match[3] || 'undefined'
+    });
+
     let resourceId: string | null = null;
     let citationTitle: string;
 
     if (match[1] && match[2]) {
-      // New format: [Source:ID:Title]
       resourceId = match[1].trim();
       citationTitle = decodeHtmlEntities(match[2].trim());
+      logger.debug(`[CitationParser ${viewport}] Using NEW format - ID: "${resourceId}", Title: "${citationTitle}"`);
     } else {
-      // Legacy format: [Source: Title] OR malformed [Source:ID] without title
       const rawTitle = decodeHtmlEntities((match[3] || '').trim());
+      logger.debug(`[CitationParser ${viewport}] Using LEGACY format - RawTitle: "${rawTitle}"`);
 
-      // Check if this looks like just an ID (e.g., wp-12345)
-      if (/^wp-\d+$/i.test(rawTitle)) {
-        // It's an ID without title - look up the resource
+      if (/^wp[-_](library|roadmap)[-_]\d+$/i.test(rawTitle) || /^wp-\d+$/i.test(rawTitle) || /^\d+$/.test(rawTitle)) {
         resourceId = rawTitle;
         const resource = resourceById.get(rawTitle);
         citationTitle = resource?.title || rawTitle;
+        logger.debug(`[CitationParser ${viewport}] LEGACY: Detected ID-only citation "${resourceId}", resolved to: "${resource?.title || 'NOT FOUND'}"`);
       } else {
         citationTitle = rawTitle;
       }
     }
 
-    // Skip empty citations
     if (!citationTitle) continue;
 
-    // Use ID as key if available, otherwise use title
     const citationKey = resourceId || citationTitle;
 
-    // Check if we've already seen this citation
     if (foundCitations.has(citationKey)) {
       continue;
     }
@@ -102,35 +161,48 @@ export function parseCitations(text: string, resources: Resource[]): ParsedRespo
 
     let matchedResource: Resource | null = null;
 
-    // Try ID-based lookup first (guaranteed match)
     if (resourceId && resourceById.has(resourceId)) {
       matchedResource = resourceById.get(resourceId)!;
-      console.log(`Citation ${citationCounter}: ID match found for ${resourceId}`);
+      logger.debug(`Citation ${citationCounter}: ID match found for "${resourceId}" -> "${matchedResource.title}"`);
+    } else if (resourceId) {
+      const viewport = typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown';
+      logger.warn(`Citation ${citationCounter} [${viewport}]: No resource found for ID "${resourceId}". Resources available: ${resourceById.size}. Available keys sample:`, Array.from(resourceById.keys()).slice(0, 10));
     }
 
-    // Fall back to title matching
     if (!matchedResource) {
       matchedResource = resources.find(r =>
         decodeHtmlEntities(r.title).toLowerCase() === citationTitle.toLowerCase()
       ) || null;
       if (matchedResource) {
-        console.log(`Citation ${citationCounter}: Title match found for "${citationTitle}"`);
+        logger.debug(`Citation ${citationCounter}: Title match found for "${citationTitle}"`);
       }
+    }
+
+    // Generate display ID based on mode
+    let displayId: string;
+    if (usePermanentIds && matchedResource?.citationId) {
+      displayId = matchedResource.citationId;
+    } else {
+      // Session-unique sequential: prefix + number + suffix
+      // e.g., "1", "3a", "2.1b"
+      displayId = `${prefix}${citationCounter}${suffix}`;
     }
 
     if (matchedResource) {
       foundCitations.set(citationKey, {
         id: citationCounter,
-        title: matchedResource.title, // Use the actual resource title
+        displayId,
+        title: matchedResource.title,
         resource: matchedResource,
         alternates: []
       });
     } else {
-      // Try fuzzy matching - find resources containing citation words
       const alternates = findSimilarResources(citationTitle, resources, 3);
-      console.log(`Citation ${citationCounter}: No match for "${citationTitle}", found ${alternates.length} alternates`);
+      const viewport = typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown';
+      logger.debug(`Citation ${citationCounter} [${viewport}]: No match for "${citationTitle}", found ${alternates.length} alternates from ${resources.length} resources. ResourceID was: ${resourceId || 'none'}`);
       foundCitations.set(citationKey, {
         id: citationCounter,
+        displayId,
         title: citationTitle,
         resource: null,
         alternates
@@ -138,32 +210,27 @@ export function parseCitations(text: string, resources: Resource[]): ParsedRespo
     }
   }
 
-  // Replace citations with markers, maintaining order
+  // Replace citations with markers
   let parsedText = text;
 
-  // Build citation key mapping (ID or title -> citation number)
-  const citationMap = new Map<string, number>();
+  const citationMap = new Map<string, string>();
   foundCitations.forEach((citation, key) => {
-    citationMap.set(key, citation.id);
+    citationMap.set(key, citation.displayId);
   });
 
-  // Replace all citations with numbered markers
-  // Handles both [Source:ID:Title] and [Source: Title] formats
   parsedText = parsedText.replace(citationRegex, (match, id, idTitle, legacyTitle) => {
     let citationKey: string;
 
     if (id && idTitle) {
-      // New format: [Source:ID:Title] - use ID as key
       citationKey = id.trim();
     } else {
-      // Legacy format: [Source: Title] - use title as key
       citationKey = decodeHtmlEntities((legacyTitle || '').trim());
     }
 
     if (!citationKey) return match;
 
-    const citationId = citationMap.get(citationKey);
-    return citationId ? `[CITE:${citationId}]` : match;
+    const displayId = citationMap.get(citationKey);
+    return displayId ? `[CITE:${displayId}]` : match;
   });
 
   return {
@@ -182,31 +249,26 @@ function findSimilarResources(citationTitle: string, resources: Resource[], maxR
     const resourceTitle = resource.title.toLowerCase();
     let score = 0;
 
-    // Count how many words from citation appear in resource title
     titleWords.forEach(word => {
       if (resourceTitle.includes(word)) {
-        score += 2; // Increased weight for word matches
+        score += 2;
       }
     });
 
-    // Bonus for substring matches (either direction)
     if (resourceTitle.includes(citationTitle.toLowerCase())) {
-      score += 20; // Strong match - resource contains citation
+      score += 20;
     } else if (citationTitle.toLowerCase().includes(resourceTitle)) {
-      score += 15; // Good match - citation contains resource
+      score += 15;
     }
 
-    // Check if citation starts with resource title or vice versa
     if (resourceTitle.startsWith(citationTitle.toLowerCase()) ||
         citationTitle.toLowerCase().startsWith(resourceTitle)) {
       score += 10;
     }
 
-    // Calculate similarity percentage
     const matchedWords = titleWords.filter(word => resourceTitle.includes(word)).length;
     const similarityPercent = titleWords.length > 0 ? (matchedWords / titleWords.length) : 0;
 
-    // If more than 60% of words match, give a strong bonus
     if (similarityPercent > 0.6) {
       score += 15;
     } else if (similarityPercent > 0.4) {
@@ -216,7 +278,6 @@ function findSimilarResources(citationTitle: string, resources: Resource[], maxR
     return { resource, score };
   });
 
-  // Sort by score and return top matches (require minimum score of 10)
   return scored
     .filter(item => item.score >= 10)
     .sort((a, b) => b.score - a.score)

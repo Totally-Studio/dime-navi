@@ -31,8 +31,9 @@ export interface Resource {
   contentType?: 'library' | 'roadmap';  // Content type from WordPress knowledge base
   url?: string;  // Optional URL for Digital resources
   wpPostId?: number;  // WordPress post ID for opening in modal
-  type?: string;  - // Resource type (e.g., 'resource' for WordPress resources)
+  type?: string;  // Resource type (e.g., 'resource' for WordPress resources)
   embedding?: number[]; // Optional vector embedding
+  citationId?: string;  // Permanent 2-char citation ID (e.g., '2f' for library, 'c2' for roadmap)
 }
 
 export interface ChatHistory {

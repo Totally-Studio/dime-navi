@@ -55,8 +55,8 @@ const ReferencesPanel: React.FC<ReferencesPanelProps> = ({
               const citationColor = isRoadmap ? '#e17909' : '#0891b2'; // Orange for roadmap, teal for library
 
               return (
-                <li key={citation.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', marginBottom: '4px', textAlign: 'left' }}>
-                  <span style={{ fontWeight: 600, color: citationColor, fontSize: '10px', minWidth: '28px', flexShrink: 0, textAlign: 'left' }}>[{citation.id}]</span>
+                <li key={citation.displayId} style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', marginBottom: '4px', textAlign: 'left' }}>
+                  <span style={{ fontWeight: 600, color: citationColor, fontSize: '10px', minWidth: '28px', flexShrink: 0, textAlign: 'left' }}>{citation.displayId}</span>
                 {citation.resource ? (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
                     <button

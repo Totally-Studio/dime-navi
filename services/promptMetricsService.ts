@@ -1,6 +1,7 @@
 import { db } from './firebaseConfig';
 import { collection, addDoc, serverTimestamp, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
 import { User } from 'firebase/auth';
+import { logger } from '../utils/logger';
 
 /**
  * Detailed Prompt Metrics Service
@@ -76,6 +77,25 @@ export interface PromptMetrics {
     hadErrors: boolean;
     cacheHit?: boolean; // If using caching
   };
+
+  // Source tracking (domain/pipeline identification)
+  source: {
+    domain: string; // e.g., "dimenotes.com", "localhost:3000"
+    referrer: string; // Document referrer (embedding page)
+    environment: 'development' | 'staging' | 'production';
+    platform: 'wordpress' | 'standalone' | 'unknown';
+    pageUrl: string;
+    userAgent: string;
+    widgetVersion: string; // e.g., "2026.02.04.20"
+  };
+
+  // Prompt configuration (for A/B testing and optimization)
+  promptConfig: {
+    version: string; // Prompt version/approach identifier
+    streamingMode: 'single-phase' | 'two-phase';
+    promptTemplate: string; // e.g., "EXHAUSTIVE", "SUMMARY"
+    features: string[]; // e.g., ["roadmap", "citations", "intro-phase"]
+  };
 }
 
 export class PromptMetricsService {
@@ -91,9 +111,9 @@ export class PromptMetricsService {
         ...metrics,
         timestamp: serverTimestamp(),
       });
-      console.log(`✅ Prompt metrics logged for user: ${metrics.userId}`);
+      logger.debug(`✅ Prompt metrics logged for user: ${metrics.userId}`);
     } catch (error) {
-      console.error('❌ Failed to log prompt metrics:', error);
+      logger.error('❌ Failed to log prompt metrics:', error);
       // Don't throw - metrics logging shouldn't break the app
     }
   }
@@ -120,7 +140,7 @@ export class PromptMetricsService {
         timestamp: doc.data().timestamp as Timestamp,
       }));
     } catch (error) {
-      console.error('Failed to get user metrics:', error);
+      logger.error('Failed to get user metrics:', error);
       return [];
     }
   }
@@ -168,7 +188,7 @@ export class PromptMetricsService {
         modelUsage,
       };
     } catch (error) {
-      console.error('Failed to get aggregate metrics:', error);
+      logger.error('Failed to get aggregate metrics:', error);
       return {
         totalPrompts: 0,
         averageTokens: 0,
@@ -181,3 +201,41 @@ export class PromptMetricsService {
 }
 
 export const promptMetricsService = new PromptMetricsService();
+
+/**
+ * Helper: Capture source information automatically
+ * Call this when logging metrics to track domain/pipeline
+ */
+export function captureSourceInfo(widgetVersion: string): PromptMetrics['source'] {
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'unknown';
+  const isDev = hostname === 'localhost' || hostname.includes('127.0.0.1');
+  const isStaging = hostname.includes('staging') || hostname.includes('dimenotesv2');
+
+  return {
+    domain: hostname,
+    referrer: typeof document !== 'undefined' ? document.referrer : '',
+    environment: isDev ? 'development' : isStaging ? 'staging' : 'production',
+    platform: typeof window !== 'undefined' && window.location.pathname.includes('wp-') ? 'wordpress' : 'standalone',
+    pageUrl: typeof window !== 'undefined' ? window.location.href : '',
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+    widgetVersion,
+  };
+}
+
+/**
+ * Helper: Create prompt config object
+ * Use this to track which prompt approach/version is being used
+ */
+export function createPromptConfig(
+  version: string,
+  streamingMode: 'single-phase' | 'two-phase',
+  template: string,
+  features: string[] = []
+): PromptMetrics['promptConfig'] {
+  return {
+    version,
+    streamingMode,
+    promptTemplate: template,
+    features,
+  };
+}

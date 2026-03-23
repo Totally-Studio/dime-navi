@@ -1,9 +1,9 @@
 import { Template } from './types';
 
 // ==================== WIDGET VERSION ====================
-export const WIDGET_VERSION = '2026.02.04.7'; // Format: YYYY.MM.DD.BUILD
-// Previous: 2026.02.04.6 (click-outside-to-close - only overlay and outside widget)
-// Current: 2026.02.04.7 (click-outside-to-close - simplified, closes for any click outside panel content)
+export const WIDGET_VERSION = '2026.03.23.1'; // Format: YYYY.MM.DD.BUILD
+// Previous: 2026.02.04.20 (Two-phase streaming, logger utility, conversation history optimization)
+// Current: 2026.03.23.1 (Citation toggle, permanent citation IDs, staging widget improvements)
 
 // ==================== DEFAULT RESPONSE TEMPLATE ====================
 // Change this to switch the default template used by NaVi and all widgets.
@@ -138,6 +138,19 @@ Then continue with your detailed response.
 
     Use RELATIVE paths for links (e.g., /your-validation-strategy/) - never hardcode domains.
     Choose the most relevant page from the sDHT Adoption Roadmap sections.`;
+
+// ==================== PERMANENT CITATION IDS ====================
+// Feature flag for permanent 2-char citation IDs (vs sequential numbering)
+// Library = digit-first (0a-9z, 260 slots), Roadmap = letter-first (a0-z9, 260 slots)
+export const ENABLE_PERMANENT_CITATIONS = true; // Toggle for client demo
+
+// Production domains where dev/debug UI should be hidden
+const PRODUCTION_DOMAINS = ['navigator.dimesociety.org'];
+export const IS_PRODUCTION = typeof window !== 'undefined'
+  && PRODUCTION_DOMAINS.includes(window.location.hostname);
+const IS_STAGING_MODE = typeof window !== 'undefined'
+  && localStorage.getItem('navi_staging_mode') === 'true';
+export const SHOW_DEV_UI = !IS_PRODUCTION || IS_STAGING_MODE;
 
 // ==================== ROADMAP RECOMMENDATION FEATURE ====================
 // Feature flag for roadmap recommendation (set to true for testing)

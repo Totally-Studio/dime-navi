@@ -2,9 +2,9 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Template, Resource, ChatHistory } from '../../../types';
-import { generateContent, getKnowledge, saveChatHistory, getChatHistory, saveBookmarks, getBookmarks } from '../../../services/apiClient';
+import { generateContent, generateIntro, getKnowledge, saveChatHistory, getChatHistory, saveBookmarks, getBookmarks, getLastCollectionInfo } from '../../../services/apiClient';
 import { BookmarkedResource } from '../../../services/backendService';
-import { DEFAULT_RESPONSE_TEMPLATE } from '../../../constants';
+import { DEFAULT_RESPONSE_TEMPLATE, ENABLE_PERMANENT_CITATIONS, SHOW_DEV_UI } from '../../../constants';
 import { LeftSidebar } from './LeftSidebar';
 import { ChatArea } from './ChatArea';
 import { RightSidebar } from './RightSidebar';
@@ -16,6 +16,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { flushSync } from 'react-dom';
 import './NaViStyles.css'; // Updated: placeholder widths reduced to 75%
 import './ResponseContent.css'; // Clean response content styles
+import { logger } from '../../../utils/logger';
 
 interface Message {
   id: string;
@@ -39,6 +40,9 @@ interface PageContext {
   siteName?: string;
   categories?: string[];
   customFields?: Record<string, string | number>;
+  termsContent?: string;
+  termsTitle?: string;
+  termsEnabled?: boolean;
 }
 
 interface NaViAppProps {
@@ -77,7 +81,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
   // Log page context when component mounts or updates
   useEffect(() => {
     if (pageContext) {
-      console.log('NaViApp: Page context received:', pageContext);
+      logger.debug('NaViApp: Page context received:', pageContext);
     }
   }, [pageContext]);
   const [user, setUser] = useState<User | null>(null);
@@ -96,6 +100,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
   const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
 
   const [resources, setResources] = useState<Resource[]>([]);
+  const [collectionName, setCollectionName] = useState<string>('');
   // Initialize from sessionStorage on mount (for anonymous session persistence)
   // This ensures chat history persists across page refreshes within the same tab
   const [chatHistoryList, setChatHistoryList] = useState<ChatHistory[]>(() => {
@@ -103,11 +108,11 @@ const NaViApp: React.FC<NaViAppProps> = ({
       const stored = sessionStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        console.log('[NaViApp] Initialized chatHistoryList from sessionStorage:', parsed.length, 'chats');
+        logger.debug('[NaViApp] Initialized chatHistoryList from sessionStorage:', parsed.length, 'chats');
         return parsed;
       }
     } catch (e) {
-      console.error('Failed to load chat history from sessionStorage on init:', e);
+      logger.error('Failed to load chat history from sessionStorage on init:', e);
     }
     return [];
   });
@@ -120,6 +125,11 @@ const NaViApp: React.FC<NaViAppProps> = ({
   // Mobile panel overlay state - track which panel is open (only one at a time)
   const [activeMobilePanel, setActiveMobilePanel] = useState<'chats' | 'bookmarks' | null>(null);
 
+  // Citation mode: 'legacy' (original bug), 'suffix' (query-aware fix), 'permanent' (Firestore IDs)
+  type CitationMode = 'legacy' | 'suffix' | 'permanent';
+  const citationMode: CitationMode = 'permanent';
+  const usePermanentCitations = true;
+
   // Initialize from localStorage on mount (for anonymous session persistence)
   // This ensures bookmarks persist across page refreshes within the browser
   const [selectedResources, setSelectedResources] = useState<ResourcePreview[]>(() => {
@@ -127,11 +137,11 @@ const NaViApp: React.FC<NaViAppProps> = ({
       const stored = localStorage.getItem(SELECTED_RESOURCES_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        console.log('[NaViApp] Initialized selectedResources from localStorage:', parsed.length, 'bookmarks');
+        logger.debug('[NaViApp] Initialized selectedResources from localStorage:', parsed.length, 'bookmarks');
         return parsed;
       }
     } catch (e) {
-      console.error('Failed to load bookmarks from localStorage on init:', e);
+      logger.error('Failed to load bookmarks from localStorage on init:', e);
     }
     return [];
   });
@@ -207,7 +217,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
         const currentUser = auth.currentUser;
         const isAuthenticatedUser = currentUser && !currentUser.isAnonymous;
 
-        console.log('[NaViApp] Bookmark save triggered:', {
+        logger.debug('[NaViApp] Bookmark save triggered:', {
           isAuthenticatedUser,
           hasLoadedBookmarks: hasLoadedBookmarksRef.current,
           bookmarkCount: selectedResources.length,
@@ -216,23 +226,23 @@ const NaViApp: React.FC<NaViAppProps> = ({
 
         if (isAuthenticatedUser && hasLoadedBookmarksRef.current) {
           // Save to Firestore for authenticated users (only after initial load to prevent overwriting)
-          console.log('[NaViApp] Saving', selectedResources.length, 'bookmarks to Firestore...');
+          logger.debug('[NaViApp] Saving', selectedResources.length, 'bookmarks to Firestore...');
           const bookmarksToSave: BookmarkedResource[] = selectedResources.map(sr => ({
             resource: sr.resource,
             citationId: sr.citationId,
             timestamp: new Date().toISOString(),
           }));
           await saveBookmarks(bookmarksToSave);
-          console.log('[NaViApp] Bookmarks saved successfully to Firestore');
+          logger.debug('[NaViApp] Bookmarks saved successfully to Firestore');
         } else if (!isAuthenticatedUser) {
           // Save to localStorage for anonymous users as fallback
-          console.log('[NaViApp] Saving to localStorage (anonymous user)');
+          logger.debug('[NaViApp] Saving to localStorage (anonymous user)');
           localStorage.setItem(SELECTED_RESOURCES_STORAGE_KEY, JSON.stringify(selectedResources));
         } else {
-          console.log('[NaViApp] Skipping bookmark save - hasLoadedBookmarksRef is false (initial load not complete)');
+          logger.debug('[NaViApp] Skipping bookmark save - hasLoadedBookmarksRef is false (initial load not complete)');
         }
       } catch (e) {
-        console.error('[NaViApp] Failed to save bookmarks:', e);
+        logger.error('[NaViApp] Failed to save bookmarks:', e);
       }
     };
 
@@ -244,7 +254,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
     try {
       sessionStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(chatHistoryList));
     } catch (e) {
-      console.error('Failed to save chat history to storage:', e);
+      logger.error('Failed to save chat history to storage:', e);
     }
   }, [chatHistoryList]);
 
@@ -331,20 +341,22 @@ const NaViApp: React.FC<NaViAppProps> = ({
       try {
         const knowledge = await getKnowledge();
         setResources(knowledge);
+        const info = getLastCollectionInfo();
+        if (info) setCollectionName(info.collectionName);
       } catch (e) {
-        console.error("Could not fetch data:", e);
+        logger.error("Could not fetch data:", e);
         toast.error("Could not load knowledge base.", { autoClose: false });
       }
     };
 
     const loadChatHistory = async (forceReload = false) => {
       try {
-        console.log('[NaViApp] loadChatHistory called, forceReload:', forceReload);
+        logger.debug('[NaViApp] loadChatHistory called, forceReload:', forceReload);
 
         const currentUser = auth.currentUser;
         const isAuthenticatedUser = currentUser && !currentUser.isAnonymous;
 
-        console.log('[NaViApp] Current user status:', {
+        logger.debug('[NaViApp] Current user status:', {
           uid: currentUser?.uid,
           isAnonymous: currentUser?.isAnonymous,
           isAuthenticatedUser,
@@ -353,7 +365,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
 
         // If forcing reload, clear session storage first
         if (forceReload) {
-          console.log('[NaViApp] Force reload - clearing session storage');
+          logger.debug('[NaViApp] Force reload - clearing session storage');
           sessionStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
           hasLoadedAuthUserHistoryRef.current = false;
         }
@@ -362,11 +374,11 @@ const NaViApp: React.FC<NaViAppProps> = ({
         // So we don't need to do anything unless forcing a reload
         if (!isAuthenticatedUser) {
           if (!forceReload) {
-            console.log('[NaViApp] Anonymous user - using already initialized sessionStorage data');
+            logger.debug('[NaViApp] Anonymous user - using already initialized sessionStorage data');
             return;
           } else {
             // Force reload for anonymous means clear everything
-            console.log('[NaViApp] Force reload for anonymous user - clearing chat history');
+            logger.debug('[NaViApp] Force reload for anonymous user - clearing chat history');
             setChatHistoryList([]);
             return;
           }
@@ -374,37 +386,37 @@ const NaViApp: React.FC<NaViAppProps> = ({
 
         // For authenticated users, only use cached data if we've already loaded it once in this session
         const storedHistory = sessionStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
-        console.log('[NaViApp] Session storage has data?', !!storedHistory);
+        logger.debug('[NaViApp] Session storage has data?', !!storedHistory);
 
         const shouldUseCached = storedHistory && !forceReload && hasLoadedAuthUserHistoryRef.current;
 
         if (shouldUseCached) {
-          console.log('[NaViApp] Using cached session storage data');
+          logger.debug('[NaViApp] Using cached session storage data');
           return;
         }
 
         // Fetch from Firebase for authenticated users
-        console.log('[NaViApp] Fetching chat history from Firebase...');
+        logger.debug('[NaViApp] Fetching chat history from Firebase...');
         const history = await getChatHistory();
-        console.log('[NaViApp] Received chat history:', history.length, 'chats');
+        logger.debug('[NaViApp] Received chat history:', history.length, 'chats');
         setChatHistoryList(history);
 
         // Mark that we've loaded history for this authenticated user
         hasLoadedAuthUserHistoryRef.current = true;
-        console.log('[NaViApp] Marked authenticated user history as loaded');
+        logger.debug('[NaViApp] Marked authenticated user history as loaded');
       } catch (e) {
-        console.error("Could not load chat history:", e);
+        logger.error("Could not load chat history:", e);
       }
     };
 
     const loadBookmarksFromFirestore = async (forceReload = false) => {
       try {
-        console.log('[NaViApp] loadBookmarksFromFirestore called, forceReload:', forceReload);
+        logger.debug('[NaViApp] loadBookmarksFromFirestore called, forceReload:', forceReload);
 
         const currentUser = auth.currentUser;
         const isAuthenticatedUser = currentUser && !currentUser.isAnonymous;
 
-        console.log('[NaViApp] Bookmark load - user status:', {
+        logger.debug('[NaViApp] Bookmark load - user status:', {
           uid: currentUser?.uid,
           isAnonymous: currentUser?.isAnonymous,
           isAuthenticatedUser,
@@ -415,9 +427,9 @@ const NaViApp: React.FC<NaViAppProps> = ({
         if (isAuthenticatedUser) {
           // Only fetch if we haven't loaded yet in this session or forcing reload
           if (!hasLoadedBookmarksRef.current || forceReload) {
-            console.log('[NaViApp] Fetching bookmarks from Firestore...');
+            logger.debug('[NaViApp] Fetching bookmarks from Firestore...');
             const bookmarks = await getBookmarks();
-            console.log('[NaViApp] Received bookmarks:', bookmarks.length, 'bookmarks');
+            logger.debug('[NaViApp] Received bookmarks:', bookmarks.length, 'bookmarks');
 
             // Convert BookmarkedResource[] to ResourcePreview[]
             const firestoreBookmarks: ResourcePreview[] = bookmarks.map(b => ({
@@ -438,12 +450,12 @@ const NaViApp: React.FC<NaViAppProps> = ({
                   const newFromLocal = localBookmarks.filter(b => !existingIds.has(b.resource.id));
                   if (newFromLocal.length > 0) {
                     mergedBookmarks = [...firestoreBookmarks, ...newFromLocal];
-                    console.log(`[NaViApp] Merged ${newFromLocal.length} localStorage bookmarks with ${firestoreBookmarks.length} Firestore bookmarks`);
+                    logger.debug(`[NaViApp] Merged ${newFromLocal.length} localStorage bookmarks with ${firestoreBookmarks.length} Firestore bookmarks`);
                   }
                 }
               }
             } catch (e) {
-              console.error('[NaViApp] Failed to merge localStorage bookmarks:', e);
+              logger.error('[NaViApp] Failed to merge localStorage bookmarks:', e);
             }
 
             // CRITICAL: Set the ref BEFORE updating state to prevent race condition
@@ -452,38 +464,34 @@ const NaViApp: React.FC<NaViAppProps> = ({
             setSelectedResources(mergedBookmarks);
             // Clear localStorage after successful merge to Firestore
             localStorage.removeItem(SELECTED_RESOURCES_STORAGE_KEY);
-            console.log('[NaViApp] Bookmarks loaded and merged (enabling saves)');
+            logger.debug('[NaViApp] Bookmarks loaded and merged (enabling saves)');
           } else {
-            console.log('[NaViApp] Bookmarks already loaded in this session');
+            logger.debug('[NaViApp] Bookmarks already loaded in this session');
           }
         } else {
           // For anonymous users, localStorage is already loaded in useState initializer
           // So we don't need to do anything
-          console.log('[NaViApp] Anonymous user - using already initialized localStorage data for bookmarks');
+          logger.debug('[NaViApp] Anonymous user - using already initialized localStorage data for bookmarks');
         }
       } catch (e) {
-        console.error("Could not load bookmarks:", e);
+        logger.error("Could not load bookmarks:", e);
       }
     };
-
-    loadKnowledge();
 
     signInAnonymouslyIfNeeded().then((anonUser) => {
       if (anonUser) {
         setUser(anonUser);
         previousUserIdRef.current = anonUser.uid;
         loadChatHistory();
+        loadKnowledge(); // ✅ Now runs AFTER auth completes
       }
     });
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('[NaViApp] Auth state changed:', {
+      logger.debug('[NaViApp] Auth state changed:', {
         currentUserId: currentUser?.uid,
         previousUserId: previousUserIdRef.current,
         isAnonymous: currentUser?.isAnonymous,
-        email: currentUser?.email,
-        displayName: currentUser?.displayName,
-        providerData: currentUser?.providerData,
       });
 
       setUser(currentUser);
@@ -492,10 +500,10 @@ const NaViApp: React.FC<NaViAppProps> = ({
       // Don't treat initial load (previousUserIdRef is null) as a user change
       const isInitialLoad = previousUserIdRef.current === null;
       const userChanged = currentUser && currentUser.uid !== previousUserIdRef.current && !isInitialLoad;
-      console.log('[NaViApp] User changed?', userChanged, '(isInitialLoad:', isInitialLoad, ')');
+      logger.debug('[NaViApp] User changed?', userChanged, '(isInitialLoad:', isInitialLoad, ')');
 
       if (currentUser) {
-        console.log('[NaViApp] Loading chat history and bookmarks, forceReload:', userChanged);
+        logger.debug('[NaViApp] Loading chat history and bookmarks, forceReload:', userChanged);
 
         // Small delay to ensure auth.currentUser is fully updated in apiClient
         if (userChanged) {
@@ -507,7 +515,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
         previousUserIdRef.current = currentUser.uid;
       } else {
         // User logged out - reset tracking refs and clear all chat state
-        console.log('[NaViApp] User logged out - resetting all state and storage');
+        logger.debug('[NaViApp] User logged out - resetting all state and storage');
         hasLoadedAuthUserHistoryRef.current = false;
         hasLoadedBookmarksRef.current = false;
         previousUserIdRef.current = null;
@@ -522,10 +530,10 @@ const NaViApp: React.FC<NaViAppProps> = ({
         localStorage.removeItem(SELECTED_RESOURCES_STORAGE_KEY);
 
         // Re-authenticate anonymously so user can continue using the widget
-        console.log('[NaViApp] Re-authenticating anonymously after logout...');
+        logger.debug('[NaViApp] Re-authenticating anonymously after logout...');
         signInAnonymouslyIfNeeded().then((anonUser) => {
           if (anonUser) {
-            console.log('[NaViApp] Anonymous re-authentication successful:', anonUser.uid);
+            logger.debug('[NaViApp] Anonymous re-authentication successful:', anonUser.uid);
             // Note: onAuthStateChanged will fire again with the new anonymous user
           }
         });
@@ -577,6 +585,8 @@ const NaViApp: React.FC<NaViAppProps> = ({
     const selectedResourceIds = resources.map(r => r.id);
 
     // Build conversation history for context
+    // Truncate responses to 500 chars (matches backend's prompt construction)
+    // This reduces payload size and avoids validation issues
     const conversationHistory: Array<{query: string, response: string}> = [];
     for (let i = 0; i < messages.length - 1; i += 2) {
       const userMsg = messages[i];
@@ -584,7 +594,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
       if (userMsg?.role === 'user' && assistantMsg?.role === 'assistant') {
         conversationHistory.push({
           query: userMsg.content,
-          response: assistantMsg.content
+          response: assistantMsg.content.substring(0, 500) // Truncate before sending
         });
       }
     }
@@ -594,6 +604,8 @@ const NaViApp: React.FC<NaViAppProps> = ({
       // Clear previous progress
       setReasoningSteps('');
 
+      // Single-phase streaming (two-phase disabled to prevent duplicate intro)
+      setReasoningSteps('Analyzing your question...');
       await generateContent(
         currentQuery,
         DEFAULT_RESPONSE_TEMPLATE,
@@ -635,7 +647,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
             });
             setChatHistoryList(prev => [savedChat, ...prev]);
           } catch (saveErr) {
-            console.error('Failed to save chat history:', saveErr);
+            logger.error('Failed to save chat history:', saveErr);
           }
         }
       }
@@ -647,7 +659,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
       );
 
       if (isAborted) {
-        console.log('Generation was stopped by user');
+        logger.debug('Generation was stopped by user');
         // Save the query so user can retry
         setLastStoppedQuery(currentQuery);
         // Keep partial response if any was received
@@ -740,7 +752,17 @@ const NaViApp: React.FC<NaViAppProps> = ({
   }, []);
 
   const handleCloseMobilePanel = useCallback(() => {
-    setActiveMobilePanel(null);
+    // Add closing class for animation
+    const panel = document.querySelector('.navi-mobile-panel');
+    const backdrop = document.querySelector('.navi-mobile-backdrop');
+
+    if (panel) panel.classList.add('closing');
+    if (backdrop) backdrop.classList.add('closing');
+
+    // Wait for animation before removing from DOM
+    setTimeout(() => {
+      setActiveMobilePanel(null);
+    }, 250);
   }, []);
 
   // Sign-in prompt: show when user clicks login button (for anonymous users)
@@ -765,7 +787,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
         toast.success('Signed in successfully! Your data is now synced.');
       }
     } catch (error: any) {
-      console.error('Error signing in:', error);
+      logger.error('Error signing in:', error);
       // Handle popup closed by user
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         // User closed the popup, no error message needed
@@ -805,20 +827,20 @@ const NaViApp: React.FC<NaViAppProps> = ({
 
   // View full resource - open in modal
   const handleViewResource = useCallback((resource: Resource) => {
-    console.log('[NaViApp] handleViewResource called with resource:', resource);
+    logger.debug('[NaViApp] handleViewResource called with resource:', resource);
     setSelectedResource(resource);
     setIsResourceModalOpen(true);
   }, []);
 
   // Handle opening terms modal (hard-coded content)
   const handleOpenTerms = useCallback(() => {
-    console.log('[NaViApp] Opening terms modal');
+    logger.debug('[NaViApp] Opening terms modal');
     setIsTermsModalOpen(true);
   }, []);
 
   // Handle closing terms modal
   const handleCloseTerms = useCallback(() => {
-    console.log('[NaViApp] Closing terms modal');
+    logger.debug('[NaViApp] Closing terms modal');
     setIsTermsModalOpen(false);
   }, []);
 
@@ -842,6 +864,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
           isCollapsed={isLeftSidebarCollapsed}
           onToggleCollapse={() => setIsLeftSidebarCollapsed(!isLeftSidebarCollapsed)}
           sourceCount={resources.length}
+                collectionName={undefined}
           hasMessages={messages.length > 0}
           onShowSignInPrompt={handleShowSignInPrompt}
         />
@@ -877,6 +900,10 @@ const NaViApp: React.FC<NaViAppProps> = ({
         reasoningSteps={reasoningSteps}
         onDismissSignInPrompt={handleDismissSignInPrompt}
         isSigningIn={isSigningIn}
+        usePermanentCitations={usePermanentCitations}
+        citationMode={citationMode}
+        onToggleCitationMode={undefined}
+        onSetCitationMode={SHOW_DEV_UI ? (mode: 'legacy' | 'suffix' | 'permanent') => setCitationMode(mode) : undefined}
       />
 
       {/* Mobile Panel Overlay - only renders on mobile when a panel is open */}
@@ -898,6 +925,7 @@ const NaViApp: React.FC<NaViAppProps> = ({
                 isCollapsed={false}
                 onToggleCollapse={handleCloseMobilePanel}
                 sourceCount={resources.length}
+                collectionName={undefined}
                 hasMessages={messages.length > 0}
                 isMobileOverlay={true}
                 onClose={handleCloseMobilePanel}
@@ -909,9 +937,11 @@ const NaViApp: React.FC<NaViAppProps> = ({
                 onRemoveResource={handleRemoveResource}
                 onViewResource={(resource) => { handleViewResource(resource); handleCloseMobilePanel(); }}
                 sourceCount={resources.length}
+                collectionName={undefined}
                 isCollapsed={false}
                 onToggleCollapse={handleCloseMobilePanel}
                 onOpenTerms={handleOpenTerms}
+                showTermsLink={pageContext?.termsEnabled !== false}
                 isMobileOverlay={true}
                 onClose={handleCloseMobilePanel}
                 isAuthenticated={!!(user && !user.isAnonymous)}
@@ -927,9 +957,11 @@ const NaViApp: React.FC<NaViAppProps> = ({
           onRemoveResource={handleRemoveResource}
           onViewResource={handleViewResource}
           sourceCount={resources.length}
+          collectionName={undefined}
           isCollapsed={isRightSidebarCollapsed}
           onToggleCollapse={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
           onOpenTerms={handleOpenTerms}
+          showTermsLink={pageContext?.termsEnabled !== false}
           isAuthenticated={!!(user && !user.isAnonymous)}
         />
       )}
@@ -941,10 +973,12 @@ const NaViApp: React.FC<NaViAppProps> = ({
         resource={selectedResource}
       />
 
-      {/* Terms Modal - Hard-coded content */}
+      {/* Terms Modal - uses content from WordPress plugin if available */}
       <TermsModal
         isOpen={isTermsModalOpen}
         onClose={handleCloseTerms}
+        termsContent={pageContext?.termsContent}
+        termsTitle={pageContext?.termsTitle}
       />
 
       {/* Toast Container - positioned within widget */}

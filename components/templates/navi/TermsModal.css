@@ -108,6 +108,20 @@
   padding-left: 8px;
 }
 
+/* Links - teal colored */
+.navi-terms-content-wrap a {
+  color: #4DC8BF;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+
+.navi-terms-content-wrap a:hover {
+  color: #77D5CD;
+  text-decoration-style: solid;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .navi-terms-modal {

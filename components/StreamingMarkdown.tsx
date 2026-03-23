@@ -1,15 +1,19 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import * as smd from 'streaming-markdown';
+import DOMPurify from 'dompurify';
 import { Resource } from '../types';
 import { parseCitations, Citation } from '../utils/citationParser';
 import { openResourceInModal } from '../utils/resourceModal';
+import { logger } from '../utils/logger';
 
 interface StreamingMarkdownProps {
   text: string;
   resources?: Resource[];
   onCitationClick?: (resource: Resource) => void;
   onCitationsReady?: (citations: Citation[]) => void;
-  onShowCitations?: (citationIds: number[]) => void;
+  onShowCitations?: (citationIds: string[]) => void;
+  usePermanentCitations?: boolean;
+  queryIndex?: number;
 }
 
 const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
@@ -17,17 +21,35 @@ const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
   resources = [],
   onCitationClick,
   onCitationsReady,
-  onShowCitations
+  onShowCitations,
+  usePermanentCitations,
+  queryIndex
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const parserRef = useRef<ReturnType<typeof smd.parser> | null>(null);
 
   // Parse citations from text
   const { parsedText, citations } = useMemo(() => {
-    const result = parseCitations(text, resources);
-    console.log('StreamingMarkdown: Parsed', result.citations.length, 'citations from', resources.length, 'resources');
+    const viewport = typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown';
+    const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 700;
+
+    logger.debug(`[StreamingMarkdown ${viewport}] Parsing citations - Resources available: ${resources.length}${isMobileViewport ? ' (MOBILE)' : ''}`);
+
+    if (resources.length === 0) {
+      logger.warn(`[StreamingMarkdown ${viewport}] WARNING: Resources array is EMPTY! Citations will not match.`);
+    } else if (isMobileViewport) {
+      logger.debug(`[StreamingMarkdown MOBILE] First 3 resources:`, resources.slice(0, 3).map(r => ({
+        id: r.id,
+        wpPostId: r.wpPostId,
+        contentType: r.contentType,
+        title: r.title.substring(0, 50)
+      })));
+    }
+
+    const result = parseCitations(text, resources, { usePermanentIds: usePermanentCitations, queryIndex });
+    logger.debug('StreamingMarkdown: Parsed', result.citations.length, 'citations from', resources.length, 'resources');
     if (result.citations.length > 0) {
-      console.log('StreamingMarkdown: First 3 citations:', result.citations.slice(0, 3).map(c => ({
+      logger.debug('StreamingMarkdown: First 3 citations:', result.citations.slice(0, 3).map(c => ({
         id: c.id,
         title: c.title,
         hasResource: !!c.resource,
@@ -35,7 +57,7 @@ const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
       })));
     }
     return result;
-  }, [text, resources]);
+  }, [text, resources, usePermanentCitations, queryIndex]);
 
   // Notify parent of parsed citations
   useEffect(() => {
@@ -50,7 +72,7 @@ const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
 
     // Replace citation markers with temporary placeholders that won't be affected by markdown
     // We'll post-process these after markdown rendering
-    processed = processed.replace(/\[CITE:(\d+)\]/g, '⟦CITE:$1⟧');
+    processed = processed.replace(/\[CITE:([a-z0-9.]+)\]/g, '⟦CITE:$1⟧');
 
     // Wrap user message (from **You:** to before **NaVi Assistant:**) in a styled block
     // This captures the user's question for special styling
@@ -68,31 +90,33 @@ const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
 
   // Post-process the rendered HTML
   const postProcessHtml = (container: HTMLElement, citationList: Citation[]) => {
-    // Build a map of citation ID to contentType for color-coding
-    const citationTypeMap = new Map<number, string>();
+    // Build a map of displayId to contentType for color-coding
+    const citationTypeMap = new Map<string, string>();
     citationList.forEach(c => {
       if (c.resource?.contentType) {
-        citationTypeMap.set(c.id, c.resource.contentType);
+        citationTypeMap.set(c.displayId, c.resource.contentType);
       }
     });
 
     // Replace citation placeholders
-    const html = container.innerHTML;
+    let html = container.innerHTML;
+
+    // Strip <code> wrappers around citation placeholders (markdown parser sometimes wraps them)
+    html = html.replace(/<code>([^<]*⟦CITE:[^⟧]+⟧[^<]*)<\/code>/g, '$1');
 
     // Group consecutive citations (2 or more) into a single [+] element
-    let processed = html.replace(/(⟦CITE:\d+⟧){2,}/g, (match) => {
-      const ids = match.match(/\d+/g) || [];
+    let processed = html.replace(/(⟦CITE:[a-z0-9.]+⟧){2,}/g, (match) => {
+      const ids = match.match(/⟦CITE:([a-z0-9.]+)⟧/g)?.map(m => m.replace(/⟦CITE:|⟧/g, '')) || [];
       return `<sup class="citation-link citation-group" data-citation-ids="${ids.join(',')}" title="Citations: ${ids.join(', ')}">[+]</sup>`;
     });
 
     // Replace remaining single citations with color-coding based on contentType
-    processed = processed.replace(/⟦CITE:(\d+)⟧/g, (match, idStr) => {
-      const id = parseInt(idStr);
-      const contentType = citationTypeMap.get(id) || '';
+    processed = processed.replace(/⟦CITE:([a-z0-9.]+)⟧/g, (match, idStr) => {
+      const contentType = citationTypeMap.get(idStr) || '';
       const typeClass = contentType === 'roadmap' ? 'roadmap' : contentType === 'library' ? 'library' : '';
 
       // Inline citations are just anchor links to References Panel - no external icon
-      return `<sup class="citation-link ${typeClass}" data-citation-id="${id}">[${id}]</sup>`;
+      return `<sup class="citation-link ${typeClass}" data-citation-id="${idStr}">[${idStr}]</sup>`;
     });
 
     // Replace user message wrapper placeholders
@@ -106,7 +130,12 @@ const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
     processed = processed.replace(/⟦ASSISTANT_LABEL⟧/g,
       '<span class="assistant-label-container"><span class="navi-label navi-label-assistant">Assistant:</span></span>');
 
-    container.innerHTML = processed;
+    // SECURITY: Sanitize HTML before setting innerHTML to prevent XSS
+    const sanitized = DOMPurify.sanitize(processed, {
+      ALLOWED_TAGS: ['p', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'code', 'pre', 'blockquote', 'span', 'div', 'br', 'sup', 'sub', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+      ALLOWED_ATTR: ['href', 'class', 'data-citation-id', 'data-citation-ids', 'data-resource-id', 'data-title', 'target', 'rel', 'id', 'style']
+    });
+    container.innerHTML = sanitized;
   };
 
   // Render markdown using streaming-markdown library
@@ -147,6 +176,26 @@ const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
+      // Check for roadmap recommendation blockquote click (click anywhere on the card)
+      const blockquote = target.tagName === 'BLOCKQUOTE' ? target : target.closest('blockquote');
+      if (blockquote) {
+        // Check if this is the roadmap recommendation (follows an hr)
+        const previousSibling = blockquote.previousElementSibling;
+        if (previousSibling && previousSibling.tagName === 'HR') {
+          // Find the link inside the blockquote
+          const link = blockquote.querySelector('a');
+          if (link) {
+            e.preventDefault();
+            e.stopPropagation();
+            const href = link.getAttribute('href') || '';
+            if (href && !href.startsWith('#')) {
+              window.open(href, '_blank', 'noopener,noreferrer');
+            }
+            return;
+          }
+        }
+      }
+
       // Check for grouped citations [+]
       if (target.classList.contains('citation-group') || target.closest('.citation-group')) {
         e.preventDefault();
@@ -154,7 +203,7 @@ const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
 
         const groupElement = target.classList.contains('citation-group') ? target : target.closest('.citation-group') as HTMLElement;
         const idsString = groupElement?.getAttribute('data-citation-ids') || '';
-        const ids = idsString.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+        const ids = idsString.split(',').filter(id => id.length > 0);
 
         if (ids.length > 0 && onShowCitations) {
           onShowCitations(ids);
@@ -167,7 +216,7 @@ const StreamingMarkdown: React.FC<StreamingMarkdownProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        const citationId = parseInt(target.getAttribute('data-citation-id') || '0');
+        const citationId = target.getAttribute('data-citation-id') || '';
 
         if (citationId && onShowCitations) {
           onShowCitations([citationId]);
